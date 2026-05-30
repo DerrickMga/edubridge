@@ -3,12 +3,15 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Lesson, LessonProgress};
-use App\Services\CertificateService;
+use App\Services\{CertificateService, GamificationService};
 use Illuminate\Http\Request;
 
 class ProgressController extends Controller
 {
-    public function __construct(private readonly CertificateService $certService) {}
+    public function __construct(
+        private readonly CertificateService $certService,
+        private readonly GamificationService $gamification,
+    ) {}
 
     public function markComplete(Request $request, Lesson $lesson)
     {
@@ -23,8 +26,16 @@ class ProgressController extends Controller
             ]
         );
 
+        // Award XP for completing the lesson
+        $this->gamification->onLessonComplete($student, $lesson);
+
         // Try to issue certificate if all lessons done
         $certificate = $this->certService->issue($student, $lesson->course);
+
+        // Award course-complete XP if cert just issued
+        if ($certificate && $certificate->wasRecentlyCreated) {
+            $this->gamification->onCourseComplete($student, $lesson->course);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

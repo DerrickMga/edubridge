@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\LiveSession;
+use App\Models\{LiveSession, StudentStat, Badge};
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $enrollments = $request->user()->enrollments()
+        $student = $request->user();
+
+        $enrollments = $student->enrollments()
             ->with([
                 'lessons' => fn ($q) => $q->where('status', 'published')->orderBy('order'),
                 'teacher',
@@ -25,6 +27,12 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        return view('student.dashboard', compact('enrollments', 'upcomingSessions'));
+        $stat         = StudentStat::firstOrCreate(['user_id' => $student->id]);
+        $recentBadges = $student->badges()->take(4)->get();
+        $rank         = StudentStat::where('xp', '>', $stat->xp)->count() + 1;
+
+        return view('student.dashboard', compact(
+            'enrollments', 'upcomingSessions', 'stat', 'recentBadges', 'rank'
+        ));
     }
 }

@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Course, Quiz, QuizQuestion};
+use App\Models\{Course, Quiz, QuizAttempt, QuizQuestion};
 use Illuminate\Http\Request;
 
 class QuizController extends Controller
@@ -64,4 +64,40 @@ class QuizController extends Controller
         return redirect()->route('teacher.courses.show', $course)
             ->with('success', 'Quiz created with '.count($data['questions']).' questions.');
     }
+
+    public function index(Course $course)
+    {
+        abort_if($course->teacher_id !== auth()->id(), 403);
+        $quizzes = Quiz::where('course_id', $course->id)
+            ->withCount(['attempts', 'attempts as passed_count' => fn ($q) => $q->where('passed', true)])
+            ->with('questions')
+            ->latest()
+            ->get();
+        return view('teacher.quizzes.index', compact('course', 'quizzes'));
+    }
+
+    public function show(Course $course, Quiz $quiz)
+    {
+        abort_if($quiz->teacher_id !== auth()->id(), 403);
+        $attempts = QuizAttempt::where('quiz_id', $quiz->id)
+            ->with('student')
+            ->latest('completed_at')
+            ->get();
+        $stats = [
+            'total'      => $attempts->count(),
+            'passed'     => $attempts->where('passed', true)->count(),
+            'avg_pct'    => $attempts->count()
+                ? (int) round($attempts->avg(fn ($a) => $a->score_percentage))
+                : 0,
+        ];
+        return view('teacher.quizzes.show', compact('course', 'quiz', 'attempts', 'stats'));
+    }
+
+    public function togglePublish(Course $course, Quiz $quiz)
+    {
+        abort_if($quiz->teacher_id !== auth()->id(), 403);
+        $quiz->update(['is_published' => !$quiz->is_published]);
+        return back()->with('success', $quiz->is_published ? 'Quiz published.' : 'Quiz unpublished.');
+    }
+
 }

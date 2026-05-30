@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Student\AchievementsController;
 use App\Http\Controllers\Student\CompanionController;
+use App\Http\Controllers\Student\LeaderboardController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 use App\Http\Controllers\Student\LessonController;
 use App\Http\Controllers\Student\ProgressController as StudentProgressController;
@@ -79,6 +81,10 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
         return view('student.certificate', compact('certificate'));
     })->name('courses.certificate');
 
+    // Gamification
+    Route::get('achievements', [AchievementsController::class, 'index'])->name('achievements');
+    Route::get('leaderboard',  [LeaderboardController::class, 'index'])->name('leaderboard');
+
     // AI Companion
     Route::get('companion',                      [CompanionController::class, 'index'])->name('companion.index');
     Route::post('companion',                     [CompanionController::class, 'store'])->name('companion.store');
@@ -124,8 +130,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::put('courses/{course}/assignments/{assignment}/submissions/{submission}/grade', [AssignmentController::class, 'grade'])->name('assignments.grade');
 
     // Quizzes
-    Route::get('courses/{course}/quizzes/create',  [TeacherQuizController::class, 'create'])->name('quizzes.create');
-    Route::post('courses/{course}/quizzes',         [TeacherQuizController::class, 'store'])->name('quizzes.store');
+    Route::get('courses/{course}/quizzes',                         [TeacherQuizController::class, 'index'])->name('quizzes.index');
+    Route::get('courses/{course}/quizzes/create',                  [TeacherQuizController::class, 'create'])->name('quizzes.create');
+    Route::post('courses/{course}/quizzes',                        [TeacherQuizController::class, 'store'])->name('quizzes.store');
+    Route::get('courses/{course}/quizzes/{quiz}',                  [TeacherQuizController::class, 'show'])->name('quizzes.show');
+    Route::patch('courses/{course}/quizzes/{quiz}/toggle',         [TeacherQuizController::class, 'togglePublish'])->name('quizzes.toggle');
 
     // Announcements
     Route::post('courses/{course}/announcements',              [AnnouncementController::class, 'store'])->name('announcements.store');

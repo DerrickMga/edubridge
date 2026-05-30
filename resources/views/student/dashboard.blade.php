@@ -48,6 +48,48 @@
         </a>
     </div>
 
+    {{-- Gamification strip ──────────────────────────────────────────────── --}}
+    @php
+        $xpPct = $stat->level_progress_percent;
+        $nextXp = $stat->next_level_xp;
+    @endphp
+    <div class="card p-4 mb-6 flex flex-wrap items-center gap-4">
+        {{-- Level badge --}}
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow">
+            <span class="text-white font-extrabold text-lg leading-none">{{ $stat->level }}</span>
+        </div>
+        {{-- XP bar --}}
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-sm font-semibold text-slate-700">Level {{ $stat->level }}
+                    <span class="text-slate-400 font-normal">· {{ number_format($stat->xp) }} XP</span></p>
+                @if($stat->streak_days >= 1)
+                <span class="text-sm font-semibold text-orange-500">🔥 {{ $stat->streak_days }}-day streak</span>
+                @endif
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ $xpPct }}%"></div>
+            </div>
+            @if($stat->level < 10)
+            <p class="text-xs text-slate-400 mt-0.5">{{ number_format($nextXp - $stat->xp) }} XP to Level {{ $stat->level + 1 }}</p>
+            @endif
+        </div>
+        {{-- Badges count --}}
+        @if($recentBadges->count())
+        <div class="flex items-center gap-1 flex-shrink-0">
+            @foreach($recentBadges as $badge)
+            <span title="{{ $badge->name }}" class="text-xl">{{ $badge->icon }}</span>
+            @endforeach
+        </div>
+        @endif
+        {{-- Rank + Links --}}
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <span class="text-sm text-slate-500">#{{ $rank }}</span>
+            <a href="{{ route('student.achievements') }}" class="btn-secondary btn-sm">Achievements</a>
+            <a href="{{ route('student.leaderboard') }}" class="btn-secondary btn-sm">Leaderboard</a>
+        </div>
+    </div>
+
     {{-- Quick Actions ────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 

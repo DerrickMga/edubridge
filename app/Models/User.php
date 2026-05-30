@@ -34,4 +34,13 @@ class User extends Authenticatable
     public function payments()      { return $this->hasMany(Payment::class); }
     public function conversations() { return $this->hasMany(Conversation::class); }
     public function enrollments()   { return $this->belongsToMany(Course::class, 'enrollments')->withTimestamps(); }
+
+    // Gamification
+    public function stat()    { return $this->hasOne(StudentStat::class); }
+    public function badges()  { return $this->belongsToMany(Badge::class, 'student_badges')->withPivot('earned_at')->orderByPivot('earned_at', 'desc'); }
+    public function xpEvents(){ return $this->hasMany(XpEvent::class); }
+
+    public function getXpAttribute(): int   { return $this->stat?->xp ?? 0; }
+    public function getLevelAttribute(): int { return $this->stat?->level ?? 1; }
+    public function getStreakAttribute(): int { return $this->stat?->streak_days ?? 0; }
 }

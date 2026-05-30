@@ -5,6 +5,13 @@
         @php
         $pct = $attempt->score_percentage;
         $passed = $attempt->passed;
+        // Calculate XP this attempt earned (mirrors GamificationService logic)
+        $xpEarned = 0;
+        if ($passed) {
+            $xpEarned = 20;
+            if ($pct === 100) $xpEarned += 15;
+            if ($attempt->attempt_number === 1) $xpEarned += 5;
+        }
         @endphp
 
         <div class="card p-8 text-center">
@@ -33,8 +40,7 @@
 
             @if($quiz->show_answers_after)
             <div class="text-left space-y-3 mb-6">
-                <h3 class="font-semibold text-slate-900 text-sm">Answers</h3>
-                @foreach($quiz->questions as $q)
+                <h3 class="font-semibold text-slate-900 text-sm">Answers</h3>                @foreach($quiz->questions as $q)
                 @php
                 $studentAns = $attempt->answers[$q->id] ?? null;
                 $correct    = strtolower(trim($studentAns ?? '')) === strtolower(trim($q->correct_answer));
@@ -50,6 +56,14 @@
                     @endif
                 </div>
                 @endforeach
+            </div>
+            @endif
+
+            @if($passed && $xpEarned > 0)
+            <div class="mb-5 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+                <span class="text-lg">⭐</span>
+                <span>You earned <strong>+{{ $xpEarned }} XP</strong> for passing this quiz!</span>
+                <a href="{{ route('student.achievements') }}" class="ml-2 text-xs text-emerald-600 hover:underline font-semibold">View achievements →</a>
             </div>
             @endif
 

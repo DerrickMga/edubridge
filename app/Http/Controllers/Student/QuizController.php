@@ -3,10 +3,13 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Quiz, QuizAttempt};
+use App\Services\GamificationService;
 use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
+    public function __construct(private readonly GamificationService $gamification) {}
+
     public function show(Quiz $quiz)
     {
         abort_if(!$quiz->is_published, 404);
@@ -54,6 +57,9 @@ class QuizController extends Controller
             'started_at'     => now()->subMinutes(1),
             'completed_at'   => now(),
         ]);
+
+        // Award gamification XP
+        $this->gamification->onQuizAttempt(auth()->user(), $quiz, $attempt);
 
         return redirect()->route('student.quizzes.result', [$quiz, $attempt]);
     }
