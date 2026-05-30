@@ -5,6 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudentStat extends Model
 {
+    protected $attributes = [
+        'xp'             => 0,
+        'level'          => 1,
+        'streak_days'    => 0,
+        'longest_streak' => 0,
+    ];
+
     protected $fillable = [
         'user_id', 'xp', 'level', 'streak_days', 'longest_streak', 'last_active_date',
     ];
@@ -43,6 +50,7 @@ class StudentStat extends Model
         $curr = $this->current_level_xp;
         $next = $this->next_level_xp;
         if ($next <= $curr) return 100;
-        return (int) round(($this->xp - $curr) / ($next - $curr) * 100);
+        $xp = $this->xp ?? 0;
+        return (int) round(($xp - $curr) / ($next - $curr) * 100);
     }
 }

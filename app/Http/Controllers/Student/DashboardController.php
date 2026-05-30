@@ -28,8 +28,8 @@ class DashboardController extends Controller
             ->get();
 
         $stat         = StudentStat::firstOrCreate(['user_id' => $student->id]);
-        $recentBadges = $student->badges()->take(4)->get();
-        $rank         = StudentStat::where('xp', '>', $stat->xp)->count() + 1;
+        $recentBadges = $student->badges()->orderByPivot('earned_at', 'desc')->take(4)->get();
+        $rank         = StudentStat::where('xp', '>', $stat->xp ?? 0)->count() + 1;
 
         return view('student.dashboard', compact(
             'enrollments', 'upcomingSessions', 'stat', 'recentBadges', 'rank'

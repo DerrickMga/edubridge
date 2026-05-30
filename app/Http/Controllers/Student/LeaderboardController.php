@@ -13,8 +13,8 @@ class LeaderboardController extends Controller
             ->take(50)
             ->get();
 
-        $myRank = StudentStat::where('xp', '>', auth()->user()->xp)->count() + 1;
         $myStat = StudentStat::firstOrCreate(['user_id' => auth()->id()]);
+        $myRank = StudentStat::where('xp', '>', $myStat->xp ?? 0)->count() + 1;
 
         return view('student.leaderboard', compact('leaders', 'myRank', 'myStat'));
     }
