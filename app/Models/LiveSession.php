@@ -6,7 +6,7 @@ class LiveSession extends Model
 {
     protected $fillable = [
         'course_id','teacher_id','title','scheduled_at','duration_minutes',
-        'provider','meeting_id','meeting_url','recording_url','status',
+        'provider','meeting_id','meeting_url','start_url','recording_url','status',
         'is_recorded','breakout_rooms_enabled','breakout_room_count',
         'attendees_count','teacher_notes',
     ];

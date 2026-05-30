@@ -243,7 +243,14 @@
                 <a href="{{ route('teacher.live-sessions.edit', $session) }}"
                    class="btn-secondary btn-sm">Edit</a>
 
-                @if($session->meeting_url)
+                @if($session->start_url)
+                    {{-- Zoom host start link (only visible to teacher) --}}
+                    <a href="{{ $session->start_url }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg {{ $btnColor }} text-white text-sm font-semibold transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+                        Start Zoom
+                    </a>
+                @elseif($session->meeting_url)
                     <a href="{{ $session->meeting_url }}" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg {{ $btnColor }} text-white text-sm font-semibold transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>

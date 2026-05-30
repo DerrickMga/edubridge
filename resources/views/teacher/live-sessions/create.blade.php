@@ -23,13 +23,14 @@
         </div>
         @endif
 
-        <form action="{{ route('teacher.live-sessions.store') }}" method="POST" class="space-y-5">
+        <form action="{{ route('teacher.live-sessions.store') }}" method="POST" class="space-y-5"
+              x-data="{ provider: '{{ old('provider', 'Meet') }}' }">
             @csrf
 
             {{-- Platform --}}
             <div class="card p-6">
                 <h3 class="font-semibold text-slate-900 mb-4">Meeting Platform</h3>
-                <div x-data="{ provider: '{{ old('provider', 'Meet') }}' }">
+                <div>
                     <div class="grid grid-cols-4 gap-2 mb-4">
                         @foreach([['Meet','Google Meet','🎥'],['Zoom','Zoom','📹'],['Calendly','Calendly','📅'],['Other','Other','🔗']] as [$val,$label,$ico])
                         <label class="relative cursor-pointer">
@@ -108,22 +109,41 @@
                 </div>
             </div>
 
-            {{-- Meeting Link --}}
+            {{-- Meeting Link (hidden for Zoom — auto-created) --}}
             <div class="card p-6 space-y-4">
+
                 <h3 class="font-semibold text-slate-900">Meeting Link</h3>
+
+                {{-- Zoom auto-create notice --}}
+                <div x-show="provider === 'Zoom'"
+                     class="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
+                    <span class="text-lg flex-shrink-0">📹</span>
+                    <div>
+                        <p class="font-semibold">Zoom meeting will be created automatically</p>
+                        <p class="text-xs text-blue-600 mt-0.5">A Zoom meeting link with waiting room and cloud recording enabled will be generated when you click "Schedule Session". Leave the URL field blank.</p>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label" for="meeting_url">Meeting URL</label>
+                    <label class="form-label" for="meeting_url">
+                        Meeting URL
+                        <span x-show="provider === 'Zoom'" class="text-slate-400 font-normal">(optional — leave blank to auto-create)</span>
+                    </label>
                     <input type="url" name="meeting_url" id="meeting_url" class="form-input"
                            placeholder="https://meet.google.com/abc-defg-hij"
                            value="{{ old('meeting_url') }}">
-                    <p class="form-hint">Paste the Zoom, Google Meet or Calendly join link. Students will see a "Join" button.</p>
+                    <p class="form-hint" x-show="provider !== 'Zoom'">Paste the Google Meet or Calendly join link. Students will see a "Join" button.</p>
                 </div>
-                <div class="form-group">
+                <div class="form-group" x-show="provider !== 'Zoom'">
                     <label class="form-label" for="meeting_id">Meeting ID <span class="text-slate-400 font-normal">(optional)</span></label>
                     <input type="text" name="meeting_id" id="meeting_id" class="form-input"
                            placeholder="e.g. 123 456 7890"
                            value="{{ old('meeting_id') }}">
                 </div>
+
+                @error('zoom')
+                <p class="text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
+                @enderror
             </div>
 
             <div class="flex gap-3 justify-end pt-2">
