@@ -7,13 +7,35 @@ use Illuminate\Database\Eloquent\Model;
 class Course extends Model
 {
     use HasFactory;
-    protected $fillable = ['teacher_id','title','description','subject','grade_level','thumbnail','status','price_usd','price_zwg','youtube_playlist_id'];
 
-    public function teacher()      { return $this->belongsTo(User::class, 'teacher_id'); }
-    public function lessons()      { return $this->hasMany(Lesson::class)->orderBy('order'); }
-    public function liveSessions() { return $this->hasMany(LiveSession::class); }
-    public function enrollments()  { return $this->belongsToMany(User::class, 'enrollments')->withTimestamps(); }
-    public function payments()     { return $this->hasMany(Payment::class); }
+    protected $fillable = [
+        'teacher_id','title','description','subject','grade_level',
+        'thumbnail','status','price_usd','price_zwg','youtube_playlist_id',
+    ];
+
+    public function teacher()       { return $this->belongsTo(User::class, 'teacher_id'); }
+    public function lessons()       { return $this->hasMany(Lesson::class)->orderBy('order'); }
+    public function liveSessions()  { return $this->hasMany(LiveSession::class); }
+    public function enrollments()   { return $this->belongsToMany(User::class, 'enrollments')->withTimestamps(); }
+    public function payments()      { return $this->hasMany(Payment::class); }
+    public function resources()     { return $this->hasMany(Resource::class)->orderBy('sort_order'); }
+    public function assignments()   { return $this->hasMany(Assignment::class); }
+    public function quizzes()       { return $this->hasMany(Quiz::class); }
+    public function recordings()    { return $this->hasMany(Recording::class); }
+    public function discussions()   { return $this->hasMany(Discussion::class)->whereNull('parent_id')->orderByDesc('is_pinned')->latest(); }
+    public function announcements() { return $this->hasMany(Announcement::class); }
+    public function certificates()  { return $this->hasMany(Certificate::class); }
 
     public function scopePublished($q) { return $q->where('status', 'published'); }
+
+    public function progressFor(int $studentId): int
+    {
+        $total = $this->lessons()->count();
+        if ($total === 0) return 0;
+        $done = LessonProgress::where('student_id', $studentId)
+            ->where('course_id', $this->id)
+            ->where('completed', true)
+            ->count();
+        return (int) round(($done / $total) * 100);
+    }
 }

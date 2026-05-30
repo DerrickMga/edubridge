@@ -1,15 +1,15 @@
 <?php
 namespace App\Services;
 
-use Anthropic\Anthropic;
+use Anthropic\Client;
 
 class ClaudeService
 {
-    private Anthropic $client;
+    private Client $client;
 
     public function __construct()
     {
-        $this->client = Anthropic::client(config('services.anthropic.api_key'));
+        $this->client = new Client(apiKey: config('services.anthropic.api_key', ''));
     }
 
     public function chat(array $messages, string $system = null): string

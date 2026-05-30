@@ -3,63 +3,61 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\Lesson;
 use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function create(Course $course)
     {
-        //
+        $this->authorize('update', $course);
+        return view('teacher.lessons.create', compact('course'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request, Course $course)
     {
-        //
+        $this->authorize('update', $course);
+        $validated = $request->validate([
+            'title'            => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'video_url'        => 'nullable|url|max:500',
+            'youtube_video_id' => 'nullable|string|max:50',
+            'duration_seconds' => 'nullable|integer|min:0',
+            'order'            => 'nullable|integer|min:0',
+            'status'           => 'in:draft,published',
+        ]);
+        $validated['order'] = $validated['order'] ?? ($course->lessons()->max('order') + 1);
+        $course->lessons()->create($validated);
+        return redirect()->route('teacher.courses.show', $course)->with('success', 'Lesson added.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function edit(Lesson $lesson)
     {
-        //
+        $this->authorize('update', $lesson->course);
+        return view('teacher.lessons.edit', ['lesson' => $lesson, 'course' => $lesson->course]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Lesson $lesson)
     {
-        //
+        $this->authorize('update', $lesson->course);
+        $lesson->update($request->validate([
+            'title'            => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'video_url'        => 'nullable|url|max:500',
+            'youtube_video_id' => 'nullable|string|max:50',
+            'duration_seconds' => 'nullable|integer|min:0',
+            'order'            => 'nullable|integer|min:0',
+            'status'           => 'in:draft,published',
+        ]));
+        return redirect()->route('teacher.courses.show', $lesson->course)->with('success', 'Lesson updated.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Lesson $lesson)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $this->authorize('update', $lesson->course);
+        $course = $lesson->course;
+        $lesson->delete();
+        return redirect()->route('teacher.courses.show', $course)->with('success', 'Lesson deleted.');
     }
 }
