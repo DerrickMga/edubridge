@@ -116,14 +116,14 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">System Prompt <span class="font-normal text-slate-400">(optional)</span></label>
-                            <textarea x-model="playForm.system" rows="3"
+                            <label for="play_system" class="block text-xs font-semibold text-slate-500 uppercase mb-1">System Prompt <span class="font-normal text-slate-400">(optional)</span></label>
+                            <textarea id="play_system" x-model="playForm.system" rows="3"
                                 placeholder="You are an AI assistant for EduBridge…"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-500 outline-none resize-none"></textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Message</label>
-                            <textarea x-model="playForm.message" rows="5"
+                            <label for="play_message" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Message</label>
+                            <textarea id="play_message" x-model="playForm.message" rows="5"
                                 placeholder="Enter your prompt here…"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-500 outline-none resize-none"></textarea>
                         </div>
@@ -151,8 +151,8 @@
                 <div class="grid lg:grid-cols-2 gap-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Topic / Subject</label>
-                            <textarea x-model="broadForm.topic" rows="3"
+                            <label for="broad_topic" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Topic / Subject</label>
+                            <textarea id="broad_topic" x-model="broadForm.topic" rows="3"
                                 placeholder="e.g. New maths courses available, Exam tips for O-Level students, Holiday schedule…"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-500 outline-none resize-none"></textarea>
                         </div>
@@ -198,18 +198,18 @@
                 <div class="grid lg:grid-cols-2 gap-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Course Title</label>
-                            <input x-model="courseForm.title" type="text" placeholder="e.g. Advanced Mathematics for O-Level"
+                            <label for="course_title" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Course Title</label>
+                            <input id="course_title" x-model="courseForm.title" type="text" placeholder="e.g. Advanced Mathematics for O-Level"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Subject</label>
-                            <input x-model="courseForm.subject" type="text" placeholder="e.g. Mathematics"
+                            <label for="course_subject" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Subject</label>
+                            <input id="course_subject" x-model="courseForm.subject" type="text" placeholder="e.g. Mathematics"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Level</label>
-                            <input x-model="courseForm.level" type="text" placeholder="e.g. O-Level / Grade 10"
+                            <label for="course_level" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Level</label>
+                            <input id="course_level" x-model="courseForm.level" type="text" placeholder="e.g. O-Level / Grade 10"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
@@ -246,18 +246,18 @@
                 <div class="grid lg:grid-cols-2 gap-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Topic</label>
-                            <input x-model="quizForm.topic" type="text" placeholder="e.g. Photosynthesis, Quadratic equations…"
+                            <label for="quiz_topic" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Topic</label>
+                            <input id="quiz_topic" x-model="quizForm.topic" type="text" placeholder="e.g. Photosynthesis, Quadratic equations…"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Level</label>
-                            <input x-model="quizForm.level" type="text" placeholder="e.g. A-Level, Primary 6…"
+                            <label for="quiz_level" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Level</label>
+                            <input id="quiz_level" x-model="quizForm.level" type="text" placeholder="e.g. A-Level, Primary 6…"
                                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Number of Questions</label>
-                            <input x-model.number="quizForm.questions" type="number" min="3" max="15" value="5"
+                            <label for="quiz_questions" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Number of Questions</label>
+                            <input id="quiz_questions" x-model.number="quizForm.questions" type="number" min="3" max="15" value="5"
                                 class="w-32 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
