@@ -64,5 +64,35 @@ class TestAccountsSeeder extends Seeder
 
         // Enrol the student in the demo course
         $student->enrollments()->syncWithoutDetaching([$course->id]);
+
+        // ── Textile Technology & Design — O-Level (ZIMSEC 4058) ──────────────
+        $textileCourse = Course::firstOrCreate(
+            ['title' => 'Textile Technology & Design — O-Level', 'teacher_id' => $teacher->id],
+            [
+                'subject'      => 'Textile Technology & Design',
+                'grade_level'  => 'Form 4 (O-Level)',
+                'description'  => 'ZIMSEC O-Level Textile Technology & Design (4058). Covers fabric science, garment construction, pattern making, design principles and consumer education.',
+                'status'       => 'published',
+                'price_usd'    => 4.00,
+                'price_zwg'    => 145.00,
+            ]
+        );
+
+        $textileLessons = [
+            ['title' => 'Fabric Types & Properties',    'description' => 'Natural vs synthetic fibres, blends (cotton/polyester), fabric weight, feel and structure.',             'order' => 1, 'status' => 'published'],
+            ['title' => 'Garment Construction',         'description' => 'Darts, linings, zips, seams and the sequence of construction for lined garments.',                       'order' => 2, 'status' => 'published'],
+            ['title' => 'Seams & Stitching Techniques', 'description' => 'Double stitched seams, binding curved edges, crossway strips and their applications.',                   'order' => 3, 'status' => 'published'],
+            ['title' => 'Pattern Making & Layout',      'description' => 'Laying out pattern pieces, pattern markings, pleats (inverted, tucks), grainlines and cutting.',        'order' => 4, 'status' => 'published'],
+            ['title' => 'Design Principles',            'description' => 'Elements and principles of design, fashion sketching using silhouettes, use of stripes and motifs.',     'order' => 5, 'status' => 'published'],
+            ['title' => 'Wardrobe Planning & Consumer Ed', 'description' => 'Planning a wardrobe, budgeting, make vs buy decisions, gender equality in Textile Technology.',      'order' => 6, 'status' => 'draft'],
+            ['title' => 'Equipment Care & Workshop Safety', 'description' => 'Care of tracing wheel, stiletto and tailor\'s chalk; safety precautions in the sewing workshop.', 'order' => 7, 'status' => 'draft'],
+        ];
+
+        foreach ($textileLessons as $data) {
+            Lesson::firstOrCreate(
+                ['course_id' => $textileCourse->id, 'title' => $data['title']],
+                $data
+            );
+        }
     }
 }

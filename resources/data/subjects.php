@@ -18,6 +18,7 @@ return [
         ['name'=>'Agriculture','icon'=>'🌱','color'=>'subject-other','desc'=>'Crop production, livestock, soil science and agribusiness.','topics'=>['Crop Production','Livestock','Soil Science','Pest Management','Agribusiness'],'exam'=>'ZIMSEC'],
         ['name'=>'Religious & Moral Education','icon'=>'📿','color'=>'subject-other','desc'=>'Ethics, world religions, and moral reasoning.','topics'=>['Ethics','Christianity','Islam','African Religion','Moral Reasoning'],'exam'=>'ZIMSEC'],
         ['name'=>'Food & Nutrition','icon'=>'🥗','color'=>'subject-other','desc'=>'Nutrition, food preparation, hygiene and health.','topics'=>['Nutrients','Food Preparation','Hygiene','Diet Planning','Consumer Ed'],'exam'=>'ZIMSEC'],
+        ['name'=>'Textile Technology & Design','icon'=>'🧵','color'=>'subject-other','desc'=>'Fabric science, garment construction, pattern making, design principles and consumer education.','topics'=>['Fabric Types & Properties','Garment Construction','Seams & Stitching','Pattern Making & Layout','Design Principles','Wardrobe Planning'],'exam'=>'ZIMSEC','paper_code'=>'4058'],
     ],
     'a_level' => [
         ['name'=>'Mathematics','icon'=>'📐','color'=>'subject-maths','desc'=>'Pure mathematics, statistics and mechanics at Advanced Level.','topics'=>['Pure Maths 1','Pure Maths 2','Statistics','Mechanics','Further Pure'],'exam'=>'ZIMSEC / Cambridge'],
