@@ -28,7 +28,7 @@ class CourseController extends Controller
         }
 
         $courses  = $query->latest()->paginate(20)->withQueryString();
-        $teachers = User::role('teacher')->orderBy('name')->get(['id', 'name']);
+        $teachers = User::where('role', 'teacher')->orderBy('name')->get(['id', 'name']);
 
         return view('admin.courses.index', compact('courses', 'teachers'));
     }

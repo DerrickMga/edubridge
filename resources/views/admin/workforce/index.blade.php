@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', 'Workforce Management')
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">Workforce Management</x-slot>
 <div class="space-y-6">
 
     {{-- Header --}}
@@ -95,4 +92,4 @@
     </div>
 
 </div>
-@endsection
+</x-app-layout>
