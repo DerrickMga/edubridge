@@ -39,8 +39,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function enrollments()   { return $this->belongsToMany(Course::class, 'enrollments')->withTimestamps(); }
     public function sessionLogs()   { return $this->hasMany(SessionLog::class, 'teacher_id'); }
     public function paymentItems()  { return $this->hasMany(TeacherPaymentItem::class, 'teacher_id'); }
-    public function verification()  { return $this->hasOne(TeacherVerification::class, 'teacher_id'); }
-    public function settlements()   { return $this->hasMany(SettlementRequest::class, 'teacher_id'); }
+    public function verification()      { return $this->hasOne(TeacherVerification::class, 'teacher_id'); }
+    public function settlements()       { return $this->hasMany(SettlementRequest::class, 'teacher_id'); }
+    public function equipmentProfile()  { return $this->hasOne(TeacherEquipmentProfile::class, 'teacher_id'); }
+    public function equipmentLoans()    { return $this->hasMany(EquipmentLoanApplication::class, 'teacher_id'); }
 
     public function getAvatarUrlAttribute(): ?string
     {

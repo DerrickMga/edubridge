@@ -32,6 +32,8 @@ use App\Http\Controllers\Teacher\SettlementController as TeacherSettlementContro
 use App\Http\Controllers\Teacher\TransactionController as TeacherTransactionController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\SettlementController as AdminSettlementController;
+use App\Http\Controllers\Admin\EquipmentController as AdminEquipmentController;
+use App\Http\Controllers\Teacher\EquipmentController as TeacherEquipmentController;
 use App\Http\Controllers\Student\TransactionController as StudentTransactionController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\PaymentController;
@@ -198,6 +200,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     // Transactions
     Route::get('transactions', [TeacherTransactionController::class, 'index'])->name('transactions.index');
 
+    // Equipment Requirements & Loans
+    Route::get('equipment',              [TeacherEquipmentController::class, 'index'])->name('equipment.index');
+    Route::post('equipment/profile',     [TeacherEquipmentController::class, 'saveProfile'])->name('equipment.save-profile');
+    Route::post('equipment/loan',        [TeacherEquipmentController::class, 'applyForLoan'])->name('equipment.apply-loan');
+
     // Teacher AI Tools
     Route::get('ai-tools',             [AiToolsController::class, 'index'])->name('ai-tools.index');
     Route::post('ai-tools/summarise',  [AiToolsController::class, 'summarise'])->name('ai-tools.summarise');
@@ -248,6 +255,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('settlements/{settlement}/processing',           [AdminSettlementController::class, 'markProcessing'])->name('settlements.processing');
     Route::post('settlements/{settlement}/paid',                 [AdminSettlementController::class, 'markPaid'])->name('settlements.paid');
     Route::post('settlements/{settlement}/reject',               [AdminSettlementController::class, 'reject'])->name('settlements.reject');
+
+    // Equipment Loans & Profiles
+    Route::get('equipment',                                      [AdminEquipmentController::class, 'index'])->name('equipment.index');
+    Route::get('equipment/profiles',                             [AdminEquipmentController::class, 'profiles'])->name('equipment.profiles');
+    Route::get('equipment/{loan}',                               [AdminEquipmentController::class, 'show'])->name('equipment.show');
+    Route::post('equipment/{loan}/under-review',                 [AdminEquipmentController::class, 'markUnderReview'])->name('equipment.under-review');
+    Route::post('equipment/{loan}/approve',                      [AdminEquipmentController::class, 'approve'])->name('equipment.approve');
+    Route::post('equipment/{loan}/disburse',                     [AdminEquipmentController::class, 'disburse'])->name('equipment.disburse');
+    Route::post('equipment/{loan}/mark-repaying',                [AdminEquipmentController::class, 'markRepaying'])->name('equipment.mark-repaying');
+    Route::post('equipment/{loan}/mark-completed',               [AdminEquipmentController::class, 'markCompleted'])->name('equipment.mark-completed');
+    Route::post('equipment/{loan}/reject',                       [AdminEquipmentController::class, 'reject'])->name('equipment.reject');
 
     // Platform Settings
     Route::get('settings/pricing',                           [AdminSettingController::class, 'index'])->name('settings.pricing');
