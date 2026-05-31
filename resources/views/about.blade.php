@@ -34,7 +34,7 @@
 <section class="bg-gradient-to-br from-slate-900 to-emerald-950 py-20 text-center">
     <div class="max-w-3xl mx-auto px-4">
         <h1 class="text-4xl font-extrabold text-white mb-4">About EduBridge</h1>
-        <p class="text-slate-300 text-xl leading-relaxed">Making quality O-Level and A-Level education accessible to every Zimbabwean student — wherever they are.</p>
+        <p class="text-slate-300 text-xl leading-relaxed">Making quality O-Level and A-Level education accessible to every Zimbabwean student, wherever they are.</p>
     </div>
 </section>
 
@@ -44,13 +44,13 @@
         <div>
             <span class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Our Mission</span>
             <h2 class="text-2xl font-bold text-slate-900 mt-2 mb-4">Bridging the education gap in Zimbabwe</h2>
-            <p class="text-slate-600 leading-relaxed">EduBridge was built with one goal: to ensure that every Zimbabwean learner — regardless of where they live — has access to the same quality of O-Level and A-Level instruction as students in the best urban schools.</p>
+            <p class="text-slate-600 leading-relaxed">EduBridge was built with one goal: to ensure that every Zimbabwean learner, regardless of where they live, has access to the same quality of O-Level and A-Level instruction as students in the best urban schools.</p>
             <p class="text-slate-600 leading-relaxed mt-4">We do this by partnering with qualified, experienced Zimbabwean teachers who deliver structured, curriculum-aligned video lessons and live sessions, accessible on mobile phones with minimal data.</p>
         </div>
         <div class="space-y-4">
             @foreach([
                 ['🇿🇼', 'Made for Zimbabwe', 'All content is ZIMSEC-aligned and taught by Zimbabwean educators.'],
-                ['📱', 'Mobile-first', 'Optimised for smartphone learning — works on 3G across Zimbabwe.'],
+                ['📱', 'Mobile-first', 'Optimised for smartphone learning. Works reliably on 3G across Zimbabwe.'],
                 ['💸', 'Affordable', 'Pay in ZWG (EcoCash/Paynow) or USD (Stripe/InnBucks). Prices set by teachers.'],
                 ['🤖', 'AI-powered', 'Chiedza AI gives every student a 24/7 personal tutor.'],
             ] as [$icon, $title, $desc])

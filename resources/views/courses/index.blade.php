@@ -35,7 +35,7 @@
     <div class="max-w-3xl mx-auto px-4">
         <span class="badge-green text-xs uppercase tracking-wide mb-4 inline-flex">Zimbabwe Curriculum</span>
         <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Browse Courses</h1>
-        <p class="text-emerald-200 text-lg mb-6">All subjects taught by vetted Zimbabwean educators — O-Level and A-Level.</p>
+        <p class="text-emerald-200 text-lg mb-6">All subjects taught by vetted Zimbabwean educators, covering O-Level and A-Level.</p>
         <form method="GET" class="max-w-md mx-auto flex gap-2">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search subject or course…" class="form-input flex-1 bg-white/10 border-white/20 text-white placeholder-white/50 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 transition-all" />
             <button type="submit" class="btn-primary">Search</button>

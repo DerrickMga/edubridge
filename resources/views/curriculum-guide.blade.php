@@ -150,7 +150,7 @@
             @foreach([
                 ['🗓️ Spaced Repetition', 'Review material at increasing intervals: 1 day, 3 days, 1 week, 2 weeks. This is the most effective method for long-term retention.'],
                 ['📝 Past Papers', 'ZIMSEC past papers are your best preparation tool. Complete at least 5 full past papers per subject before your exams.'],
-                ['🎯 Mark Schemes', 'Study mark schemes carefully — they show exactly what examiners are looking for. Use them to self-assess every practice essay.'],
+                ['🎯 Mark Schemes', 'Study mark schemes carefully: they reveal exactly what examiners are looking for. Use them to self-assess every practice answer.'],
                 ['🧩 Active Recall', 'Close your textbook and try to recall key concepts from memory. Testing yourself beats passive re-reading every time.'],
                 ['💬 Teach Someone', 'Explain concepts to classmates or family. The Feynman Technique: if you can\'t explain it simply, you don\'t understand it yet.'],
                 ['⏰ Time Management', 'In exams, allocate time per mark. For a 2-hour paper with 100 marks: 1 minute per mark = 20 mins to check. Never leave blanks.'],

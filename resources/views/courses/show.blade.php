@@ -117,7 +117,7 @@
                                 @if(($isPromo ?? false) && ($course->price_usd ?? 0) > 0)
                                     Enrol for Free 🎉
                                 @elseif(($course->price_usd ?? 0) > 0)
-                                    Enrol Now — ${{ number_format($course->price_usd, 0) }}
+                                    Enrol Now &middot; ${{ number_format($course->price_usd, 0) }}
                                 @else
                                     Enrol for Free
                                 @endif

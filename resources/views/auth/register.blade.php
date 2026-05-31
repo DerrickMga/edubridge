@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-8">
         <h2 class="text-2xl font-extrabold text-slate-900">Create your account</h2>
-        <p class="text-slate-500 text-sm mt-1">Join EduBridge — it's free to get started</p>
+        <p class="text-slate-500 text-sm mt-1">Join EduBridge. It's free to get started.</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-5">

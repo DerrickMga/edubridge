@@ -49,7 +49,7 @@
             <span class="text-emerald-400">best educators</span>
         </h1>
         <p class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            O-Level and A-Level courses taught by qualified Zimbabwean teachers — ZIMSEC aligned. Study on your phone, anytime, anywhere, in USD or ZWG.
+            O-Level and A-Level courses taught by qualified, ZIMSEC-aligned Zimbabwean teachers. Study on your phone, anytime, anywhere, in USD or ZWG.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center mb-14">
             <a href="{{ route('register') }}" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all text-base">
@@ -86,9 +86,9 @@
         <div class="grid md:grid-cols-3 gap-8">
             @foreach([
                 ['🇿🇼', 'ZIMSEC Aligned', 'All content mapped to the Zimbabwe O-Level and A-Level syllabi. Every lesson is tagged by topic and exam board.'],
-                ['📱', 'Mobile-First', 'Designed for smartphones — study from anywhere with minimal data. Works on 3G networks across Zimbabwe.'],
+                ['📱', 'Mobile-First', 'Built for smartphones. Study from anywhere with minimal data, including on 3G networks across Zimbabwe.'],
                 ['💸', 'ZWG & USD Payments', 'Pay in ZWG via EcoCash and Paynow, or in USD via Stripe and InnBucks. Truly accessible for every household.'],
-                ['🤖', 'Chiedza AI Tutor', 'Get instant answers to any question — from solving equations to explaining history. Available 24/7.'],
+                ['🤖', 'Chiedza AI Tutor', 'Get instant answers to any question, from solving equations to explaining history. Available 24/7.'],
                 ['🎓', 'Vetted Teachers', 'All tutors are qualified, experienced Zimbabwean educators. No anonymous content creators.'],
                 ['📊', 'Progress Tracking', 'Track your learning progress, see which topics you have covered, and get personalised revision suggestions.'],
             ] as [$icon, $title, $desc])
@@ -137,7 +137,7 @@
 <section class="py-20 bg-emerald-700">
     <div class="max-w-2xl mx-auto text-center px-4">
         <h2 class="text-3xl font-extrabold text-white mb-4">Ready to excel in your exams?</h2>
-        <p class="text-emerald-200 text-lg mb-8">Join EduBridge today — free to sign up, affordable to learn.</p>
+        <p class="text-emerald-200 text-lg mb-8">Join EduBridge today. Free to sign up and built to be affordable for every Zimbabwean household.</p>
         <div class="flex gap-3 justify-center flex-wrap">
             <a href="{{ route('register') }}" class="bg-white text-emerald-700 font-bold px-8 py-3.5 rounded-xl hover:bg-emerald-50 transition-all shadow-lg">Get started free</a>
             <a href="{{ route('about') }}" class="border border-emerald-500 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-emerald-600 transition-all">Learn more</a>
