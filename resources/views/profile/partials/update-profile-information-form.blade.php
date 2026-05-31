@@ -87,7 +87,7 @@
         {{-- Qualification --}}
         <div>
             <x-input-label for="qualification" :value="__('Qualification')" />
-            <x-text-input id="qualification" name="qualification" type="text" class="mt-1 block w-full" :value="old('qualification', $user->qualification)" />
+            <x-text-input id="qualification" name="qualification" type="text" class="mt-1 block w-full" :value="old('qualification', $user->qualification)" autocomplete="organization-title" />
             <x-input-error class="mt-2" :messages="$errors->get('qualification')" />
         </div>
 
@@ -103,12 +103,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <x-input-label for="website" :value="__('Website')" />
-                <x-text-input id="website" name="website" type="url" class="mt-1 block w-full" :value="old('website', $user->website)" placeholder="https://" />
+                <x-text-input id="website" name="website" type="url" class="mt-1 block w-full" :value="old('website', $user->website)" placeholder="https://" autocomplete="url" />
                 <x-input-error class="mt-2" :messages="$errors->get('website')" />
             </div>
             <div>
                 <x-input-label for="linkedin_url" :value="__('LinkedIn URL')" />
-                <x-text-input id="linkedin_url" name="linkedin_url" type="url" class="mt-1 block w-full" :value="old('linkedin_url', $user->linkedin_url)" placeholder="https://linkedin.com/in/..." />
+                <x-text-input id="linkedin_url" name="linkedin_url" type="url" class="mt-1 block w-full" :value="old('linkedin_url', $user->linkedin_url)" placeholder="https://linkedin.com/in/..." autocomplete="off" />
                 <x-input-error class="mt-2" :messages="$errors->get('linkedin_url')" />
             </div>
         </div>
@@ -118,7 +118,7 @@
             <x-input-label for="twitter_handle" :value="__('Twitter / X Handle')" />
             <div class="mt-1 flex rounded-md shadow-sm">
                 <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">@</span>
-                <x-text-input id="twitter_handle" name="twitter_handle" type="text" class="block w-full rounded-l-none" :value="old('twitter_handle', $user->twitter_handle)" placeholder="username" />
+                <x-text-input id="twitter_handle" name="twitter_handle" type="text" class="block w-full rounded-l-none" :value="old('twitter_handle', $user->twitter_handle)" placeholder="username" autocomplete="off" />
             </div>
             <x-input-error class="mt-2" :messages="$errors->get('twitter_handle')" />
         </div>
