@@ -53,6 +53,18 @@ class PaymentController extends Controller
                 ->with('info', 'You are already enrolled in this course.');
         }
 
+        // Promotional free-pass active?
+        $promoUntil = \Carbon\Carbon::parse(Setting::get('promo_free_until', '2026-08-31'))->endOfDay();
+        if (auth()->check() && now()->lte($promoUntil)) {
+            auth()->user()->enrollments()->attach($course->id, [
+                'status'        => 'active',
+                'access_period' => 'termly',
+                'expires_at'    => now()->addMonths(3),
+            ]);
+            return redirect()->route('student.dashboard')
+                ->with('success', "Enrolled in \"{$course->title}\" — FREE for 3 months! 🎉");
+        }
+
         // Build period pricing for checkout view
         $zwgRate      = self::zwgRate();
         $periodPricing = collect(self::periodPrices())->map(fn($usd, $key) => [

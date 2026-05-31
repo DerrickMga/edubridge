@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class EnrollmentController extends Controller
@@ -25,12 +27,20 @@ class EnrollmentController extends Controller
                 ->with('info', "You're already enrolled in \"{$course->title}\".");
         }
 
-        // Free course — enroll directly
-        if (($course->price_usd ?? 0) <= 0 && ($course->price_zwg ?? 0) <= 0) {
-            $student->enrollments()->attach($course->id, ['status' => 'active']);
+        // Promotional free-pass active?
+        $promoUntil = Carbon::parse(Setting::get('promo_free_until', '2026-08-31'))->endOfDay();
+        $inPromo    = now()->lte($promoUntil);
 
-            return redirect()->route('student.dashboard')
-                ->with('success', "You've been enrolled in \"{$course->title}\"! Start learning now.");
+        // Free course OR promo period — enroll directly
+        if ($inPromo || (($course->price_usd ?? 0) <= 0 && ($course->price_zwg ?? 0) <= 0)) {
+            $pivotData = ['status' => 'active', 'access_period' => 'termly', 'expires_at' => now()->addMonths(3)];
+            $student->enrollments()->attach($course->id, $pivotData);
+
+            $msg = $inPromo && (($course->price_usd ?? 0) > 0)
+                ? "You've been enrolled in \"{$course->title}\" — completely FREE for 3 months! 🎉"
+                : "You've been enrolled in \"{$course->title}\"! Start learning now.";
+
+            return redirect()->route('student.dashboard')->with('success', $msg);
         }
 
         // Paid course — go to checkout
@@ -51,6 +61,10 @@ class EnrollmentController extends Controller
             ? $request->user()->enrollments()->where('course_id', $course->id)->exists()
             : false;
 
+        $isPromo = now()->lte(
+            Carbon::parse(Setting::get('promo_free_until', '2026-08-31'))->endOfDay()
+        );
+
         // First incomplete lesson for enrolled students
         $continueLesson = null;
         if ($isEnrolled && $request->user()) {
@@ -62,6 +76,10 @@ class EnrollmentController extends Controller
             $continueLesson = $course->lessons->firstWhere(fn($l) => ! $completedIds->contains($l->id));
         }
 
-        return view('courses.show', compact('course', 'isEnrolled', 'continueLesson'));
+        $isPromo = now()->lte(
+            Carbon::parse(Setting::get('promo_free_until', '2026-08-31'))->endOfDay()
+        );
+
+        return view('courses.show', compact('course', 'isEnrolled', 'continueLesson', 'isPromo'));
     }
 }

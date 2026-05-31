@@ -70,6 +70,13 @@
 
             {{-- Enrollment card --}}
             <div class="bg-white rounded-2xl shadow-xl p-6 w-full md:w-72 shrink-0">
+                {{-- Promo banner --}}
+                @if(!$isEnrolled && ($isPromo ?? false))
+                <div class="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 text-center">
+                    <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">🎉 FREE for 3 Months!</p>
+                    <p class="text-[11px] text-emerald-600 mt-0.5">Enrol free until 31 Aug 2026</p>
+                </div>
+                @endif
                 @if($isEnrolled)
                     <div class="flex items-center gap-2 mb-4">
                         <span class="text-emerald-600 font-semibold text-sm">✅ You're enrolled</span>
@@ -89,7 +96,10 @@
                 @else
                     {{-- Price --}}
                     <div class="mb-4">
-                        @if(($course->price_usd ?? 0) > 0)
+                        @if(($isPromo ?? false))
+                            <div class="text-2xl font-extrabold text-emerald-600">Free <span class="text-sm text-slate-400 line-through font-normal">${{ number_format($course->price_usd ?? 0, 0) }}</span></div>
+                            <div class="text-xs text-slate-400">Promotional — 3 months access</div>
+                        @elseif(($course->price_usd ?? 0) > 0)
                             <div class="text-3xl font-extrabold text-slate-900">${{ number_format($course->price_usd, 0) }}</div>
                             @if($course->price_zwg)
                                 <div class="text-sm text-slate-500">or ZWG {{ number_format($course->price_zwg, 0) }}</div>
@@ -104,7 +114,9 @@
                         <form action="{{ route('student.courses.enroll', $course) }}" method="POST">
                             @csrf
                             <button type="submit" class="w-full btn-primary py-3 font-semibold text-sm">
-                                @if(($course->price_usd ?? 0) > 0)
+                                @if(($isPromo ?? false) && ($course->price_usd ?? 0) > 0)
+                                    Enrol for Free 🎉
+                                @elseif(($course->price_usd ?? 0) > 0)
                                     Enrol Now — ${{ number_format($course->price_usd, 0) }}
                                 @else
                                     Enrol for Free
