@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             AdminSeeder::class,
             TestAccountsSeeder::class,
+            CurriculumSeeder::class,
         ]);
     }
 }
