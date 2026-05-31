@@ -22,7 +22,7 @@
             </div>
             <div class="stat-card">
                 <p class="stat-label">Active Courses</p>
-                <p class="stat-value text-2xl text-emerald-600">{{ $payments->where('status', 'completed')->count() }}</p>
+                <p class="stat-value text-2xl text-emerald-600">{{ $payments->where('status', 'paid')->count() }}</p>
             </div>
         </div>
 
@@ -50,8 +50,8 @@
                         <tr>
                             <td class="font-medium text-slate-800">{{ $p->course?->title ?? 'Unknown Course' }}</td>
                             <td class="text-xs text-slate-500">{{ $p->created_at->format('d M Y') }}</td>
-                            <td class="font-semibold tabular-nums">${{ number_format($p->amount_usd, 2) }}</td>
-                            <td class="text-sm capitalize">{{ $p->payment_provider ?? '—' }}</td>
+                            <td class="font-semibold tabular-nums">${{ number_format($p->amount, 2) }}</td>
+                            <td class="text-sm capitalize">{{ $p->provider ?? '—' }}</td>
                             <td class="text-xs text-slate-500">
                                 @if($p->access_starts_at && $p->access_expires_at)
                                     {{ $p->access_starts_at->format('d M Y') }} – {{ $p->access_expires_at->format('d M Y') }}
