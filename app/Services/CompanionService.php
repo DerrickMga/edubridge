@@ -20,9 +20,10 @@ use Illuminate\Support\Facades\Log;
 class CompanionService
 {
     public function __construct(
-        private ClaudeService    $chiedza,   // Azure AI / Chiedza agent
-        private AnthropicService $claude,    // Real Anthropic Claude
-        private GptService       $gpt,       // OpenAI GPT-4o
+        private ClaudeService            $chiedza,    // Azure AI / Chiedza agent
+        private AnthropicService         $claude,     // Real Anthropic Claude
+        private GptService               $gpt,        // OpenAI GPT-4o
+        private CurriculumContextService $curriculum, // ZIMSEC syllabus context
     ) {}
 
     const MODEL_CHIEDZA = 'chiedza'; // Azure AI ChiedzaEdu agent
@@ -173,6 +174,21 @@ You are warm, patient, encouraging, and always accurate.
 When you don't know something, say so clearly and suggest where the student can find the answer.
 Keep responses concise and well-structured with bullet points or numbered steps where helpful.
 SYS;
+
+        // Inject ZIMSEC syllabus context if conversation has a subject
+        try {
+            $meta    = is_array($conversation->metadata) ? $conversation->metadata : [];
+            $subject = $meta['subject'] ?? null;
+            $tier    = $meta['tier'] ?? 'o_level';
+            if ($subject) {
+                $syllabusCtx = $this->curriculum->buildSystemContext($subject, $tier);
+                if ($syllabusCtx) {
+                    $base .= $syllabusCtx;
+                }
+            }
+        } catch (\Throwable) {
+            // Non-fatal — proceed without syllabus context
+        }
 
         $memory = $this->getMemorySummary($conversation);
         if ($memory) {

@@ -4,6 +4,8 @@ use App\Jobs\ProcessSessionAiReport;
 use App\Models\Assignment;
 use App\Models\LiveSession;
 use App\Console\Commands\SyncZoomRecordings;
+use App\Console\Commands\RefineQuizzesCommand;
+use App\Console\Commands\IngestPastPapersCommand;
 use App\Notifications\AssignmentDueNotification;
 use App\Notifications\LiveSessionReminderNotification;
 use Illuminate\Foundation\Inspiring;
@@ -90,6 +92,36 @@ Schedule::call(function () {
 Schedule::command(SyncZoomRecordings::class)
     ->everyThirtyMinutes()
     ->name('zoom-sync-recordings')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+/*
+|--------------------------------------------------------------------------
+| Quiz Refinement — runs weekly (Sunday 02:00)
+| Uses Claude AI + ZIMSEC syllabus PDFs to keep quiz questions fresh
+| and curriculum-aligned. Runs quietly overnight.
+|--------------------------------------------------------------------------
+*/
+Schedule::command(RefineQuizzesCommand::class, ['--questions=15'])
+    ->weekly()
+    ->sundays()
+    ->at('02:00')
+    ->name('curriculum-refine-quizzes')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->emailOutputOnFailure(config('mail.from.address'));
+
+/*
+|--------------------------------------------------------------------------
+| Past Paper Ingestion — runs daily at 03:00
+| Picks up any new ZIPs added to resources/curriculum/zimsec/past-papers/
+| and creates storage + Resource records without re-processing existing ones.
+|--------------------------------------------------------------------------
+*/
+Schedule::command(IngestPastPapersCommand::class)
+    ->daily()
+    ->at('03:00')
+    ->name('curriculum-ingest-papers')
     ->withoutOverlapping()
     ->runInBackground();
 
