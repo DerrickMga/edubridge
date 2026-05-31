@@ -47,8 +47,8 @@ class CurriculumSeeder extends Seeder
             ]
         );
 
-        if (! $teacher->hasRole('teacher')) {
-            $teacher->assignRole('teacher');
+        if ($teacher->role !== 'teacher') {
+            $teacher->update(['role' => 'teacher']);
         }
 
         return $teacher;

@@ -21,8 +21,6 @@ class TestAccountsSeeder extends Seeder
                 'country'  => 'ZW',
             ]
         );
-        $student->assignRole('student');
-
         // ── Teacher ──────────────────────────────────────────────────────────
         $teacher = User::firstOrCreate(
             ['email' => 'teacher@edubridge.co.zw'],
@@ -33,8 +31,6 @@ class TestAccountsSeeder extends Seeder
                 'country'  => 'ZW',
             ]
         );
-        $teacher->assignRole('teacher');
-
         // ── Demo course with lessons (owned by teacher) ───────────────────────
         $course = Course::firstOrCreate(
             ['title' => 'Mathematics — O-Level Revision', 'teacher_id' => $teacher->id],
