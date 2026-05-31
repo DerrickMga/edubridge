@@ -59,6 +59,10 @@
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></x-slot>
                     Leaderboard
                 </x-sidebar-link>
+                <x-sidebar-link href="{{ route('student.transactions.index') }}" :active="request()->routeIs('student.transactions*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></x-slot>
+                    Payment History
+                </x-sidebar-link>
                 <x-sidebar-link href="{{ route('subjects.index') }}" :active="request()->routeIs('subjects.*')">
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></x-slot>
                     Subjects
@@ -90,6 +94,20 @@
                     Subject Library
                 </x-sidebar-link>
 
+                <p class="section-label px-3 pb-2 pt-3">Finance</p>
+                <x-sidebar-link href="{{ route('teacher.verification.index') }}" :active="request()->routeIs('teacher.verification*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></x-slot>
+                    KYC Verification
+                </x-sidebar-link>
+                <x-sidebar-link href="{{ route('teacher.settlements.index') }}" :active="request()->routeIs('teacher.settlements*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/></x-slot>
+                    Settlements
+                </x-sidebar-link>
+                <x-sidebar-link href="{{ route('teacher.transactions.index') }}" :active="request()->routeIs('teacher.transactions*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></x-slot>
+                    Transactions
+                </x-sidebar-link>
+
             {{-- ADMIN --}}
             @elseif($role === 'admin')
                 <p class="section-label px-3 pb-2 pt-1">Platform</p>
@@ -107,6 +125,14 @@
                 </x-sidebar-link>
 
                 <p class="section-label px-3 pb-2 pt-3">Finance</p>
+                <x-sidebar-link href="{{ route('admin.verifications.index') }}" :active="request()->routeIs('admin.verifications.*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></x-slot>
+                    KYC Verifications
+                </x-sidebar-link>
+                <x-sidebar-link href="{{ route('admin.settlements.index') }}" :active="request()->routeIs('admin.settlements.*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></x-slot>
+                    Settlements
+                </x-sidebar-link>
                 <x-sidebar-link href="{{ route('admin.teacher-payments.index') }}" :active="request()->routeIs('admin.teacher-payments.*')">
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/></x-slot>
                     Teacher Payments
@@ -146,8 +172,12 @@
         @auth
         <div class="px-4 py-3.5 border-t border-slate-100 flex-shrink-0">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 uppercase shadow-sm">
-                    {{ substr(auth()->user()->name, 0, 1) }}
+                <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
+                    @if(auth()->user()->avatar)
+                        <img src="{{ auth()->user()->avatar_url }}" class="w-full h-full object-cover" alt="{{ auth()->user()->name }}">
+                    @else
+                        <div class="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-sm font-bold flex items-center justify-center uppercase">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                    @endif
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-slate-800 truncate">{{ auth()->user()->name }}</p>
@@ -238,8 +268,12 @@
                 {{-- Profile avatar (desktop) --}}
                 <a href="{{ route('profile.edit') }}"
                    class="hidden lg:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors">
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xs font-bold flex items-center justify-center uppercase shadow-sm">
-                        {{ substr(auth()->user()->name, 0, 1) }}
+                    <div class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ auth()->user()->avatar_url }}" class="w-full h-full object-cover" alt="{{ auth()->user()->name }}">
+                        @else
+                            <div class="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xs font-bold flex items-center justify-center uppercase">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                        @endif
                     </div>
                     <span class="text-sm font-medium text-slate-700 max-w-[120px] truncate">{{ auth()->user()->name }}</span>
                 </a>

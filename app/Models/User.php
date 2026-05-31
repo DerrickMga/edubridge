@@ -13,7 +13,9 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable, HasRoles;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'phone', 'country', 'grade_level', 'is_active', 'hourly_rate_usd',
+        'name', 'email', 'password', 'role', 'phone', 'country', 'city',
+        'grade_level', 'is_active', 'hourly_rate_usd',
+        'avatar', 'bio', 'website', 'linkedin_url', 'twitter_handle', 'qualification',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -37,6 +39,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function enrollments()   { return $this->belongsToMany(Course::class, 'enrollments')->withTimestamps(); }
     public function sessionLogs()   { return $this->hasMany(SessionLog::class, 'teacher_id'); }
     public function paymentItems()  { return $this->hasMany(TeacherPaymentItem::class, 'teacher_id'); }
+    public function verification()  { return $this->hasOne(TeacherVerification::class, 'teacher_id'); }
+    public function settlements()   { return $this->hasMany(SettlementRequest::class, 'teacher_id'); }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->avatar) {
+            return \Illuminate\Support\Facades\Storage::url($this->avatar);
+        }
+        return null;
+    }
+
+    public function getIsVerifiedAttribute(): bool
+    {
+        return $this->verification?->status === 'approved';
+    }
 
     // Gamification
     public function stat()    { return $this->hasOne(StudentStat::class); }

@@ -27,6 +27,12 @@ use App\Http\Controllers\Admin\TeacherPaymentController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Teacher\ResourceController;
 use App\Http\Controllers\Teacher\AiToolsController;
+use App\Http\Controllers\Teacher\VerificationController as TeacherVerificationController;
+use App\Http\Controllers\Teacher\SettlementController as TeacherSettlementController;
+use App\Http\Controllers\Teacher\TransactionController as TeacherTransactionController;
+use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
+use App\Http\Controllers\Admin\SettlementController as AdminSettlementController;
+use App\Http\Controllers\Student\TransactionController as StudentTransactionController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -111,6 +117,9 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     // Course enrollment
     Route::post('courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('courses.enroll');
 
+    // Transaction history
+    Route::get('transactions', [StudentTransactionController::class, 'index'])->name('transactions.index');
+
     // AI Companion (AI rate limit applied to generative POST endpoints)
     Route::get('companion',                      [CompanionController::class, 'index'])->name('companion.index');
     Route::post('companion',                     [CompanionController::class, 'store'])->name('companion.store');
@@ -176,6 +185,17 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     // Session Hour Logs
     Route::post('live-sessions/{liveSession}/log', [SessionLogController::class, 'store'])->name('sessions.log');
 
+    // KYC Verification
+    Route::get('verification',  [TeacherVerificationController::class, 'index'])->name('verification.index');
+    Route::post('verification', [TeacherVerificationController::class, 'store'])->name('verification.store');
+
+    // Settlements
+    Route::get('settlements',  [TeacherSettlementController::class, 'index'])->name('settlements.index');
+    Route::post('settlements', [TeacherSettlementController::class, 'store'])->name('settlements.store');
+
+    // Transactions
+    Route::get('transactions', [TeacherTransactionController::class, 'index'])->name('transactions.index');
+
     // Teacher AI Tools
     Route::get('ai-tools',             [AiToolsController::class, 'index'])->name('ai-tools.index');
     Route::post('ai-tools/summarise',  [AiToolsController::class, 'summarise'])->name('ai-tools.summarise');
@@ -211,6 +231,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('ai-tools/generate-description',             [AdminAiController::class, 'generateCourseDescription'])->name('ai-tools.course-desc');
     Route::post('ai-tools/generate-quiz',                    [AdminAiController::class, 'generateQuiz'])->name('ai-tools.quiz');
 
+    // KYC Verifications
+    Route::get('verifications',                                  [AdminVerificationController::class, 'index'])->name('verifications.index');
+    Route::get('verifications/{verification}',                   [AdminVerificationController::class, 'show'])->name('verifications.show');
+    Route::post('verifications/{verification}/approve',          [AdminVerificationController::class, 'approve'])->name('verifications.approve');
+    Route::post('verifications/{verification}/reject',           [AdminVerificationController::class, 'reject'])->name('verifications.reject');
+    Route::get('verifications/{verification}/download/{field}',  [AdminVerificationController::class, 'downloadDocument'])->name('verifications.download');
+
+    // Settlements
+    Route::get('settlements',                                    [AdminSettlementController::class, 'index'])->name('settlements.index');
+    Route::post('settlements/{settlement}/approve',              [AdminSettlementController::class, 'approve'])->name('settlements.approve');
+    Route::post('settlements/{settlement}/processing',           [AdminSettlementController::class, 'markProcessing'])->name('settlements.processing');
+    Route::post('settlements/{settlement}/paid',                 [AdminSettlementController::class, 'markPaid'])->name('settlements.paid');
+    Route::post('settlements/{settlement}/reject',               [AdminSettlementController::class, 'reject'])->name('settlements.reject');
+
     // Platform Settings
     Route::get('settings/pricing',                           [AdminSettingController::class, 'index'])->name('settings.pricing');
     Route::patch('settings/pricing',                         [AdminSettingController::class, 'update'])->name('settings.pricing.update');
@@ -220,6 +254,9 @@ Route::middleware('auth')->group(function () {
     Route::get('profile',    [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Profile avatar removal
+    Route::delete('profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.remove-avatar');
 
     // Notifications
     Route::post('notifications/read-all', function () {
