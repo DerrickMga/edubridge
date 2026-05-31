@@ -28,12 +28,97 @@ class YouTubeService
     protected string $clientId;
     protected string $clientSecret;
     protected string $redirectUri;
+    protected string $apiKey;
 
     public function __construct()
     {
         $this->clientId     = (string) config('services.google.client_id');
         $this->clientSecret = (string) config('services.google.client_secret');
         $this->redirectUri  = (string) config('services.google.redirect');
+        $this->apiKey       = (string) config('services.google.api_key', '');
+    }
+
+    // ── Public data (API key) ──────────────────────────────────────────────
+
+    /**
+     * Extract a YouTube video ID from any youtube.com or youtu.be URL.
+     * Returns null if the URL is not a recognisable YouTube link.
+     */
+    public static function extractVideoId(string $url): ?string
+    {
+        // youtu.be/<id>
+        if (preg_match('#youtu\.be/([A-Za-z0-9_-]{11})#', $url, $m)) {
+            return $m[1];
+        }
+        // youtube.com/watch?v=<id>  or  /embed/<id>  or  /v/<id>  or  /shorts/<id>
+        if (preg_match('#(?:v=|embed/|/v/|/shorts/)([A-Za-z0-9_-]{11})#', $url, $m)) {
+            return $m[1];
+        }
+        return null;
+    }
+
+    /**
+     * Fetch public metadata for a YouTube video using the server API key.
+     *
+     * Returns an array with keys: id, title, description, duration_seconds,
+     * thumbnail_url, channel_title  — or null on failure / not configured.
+     */
+    public function fetchVideoDetails(string $videoIdOrUrl): ?array
+    {
+        $videoId = strlen($videoIdOrUrl) === 11
+            ? $videoIdOrUrl
+            : self::extractVideoId($videoIdOrUrl);
+
+        if (! $videoId || $this->apiKey === '') {
+            return null;
+        }
+
+        $resp = Http::get('https://www.googleapis.com/youtube/v3/videos', [
+            'id'   => $videoId,
+            'part' => 'snippet,contentDetails',
+            'key'  => $this->apiKey,
+        ]);
+
+        if (! $resp->ok()) {
+            Log::warning('YouTube fetchVideoDetails failed', ['status' => $resp->status(), 'body' => $resp->body()]);
+            return null;
+        }
+
+        $item = $resp->json('items.0');
+        if (! $item) {
+            return null;
+        }
+
+        $snippet        = $item['snippet'] ?? [];
+        $contentDetails = $item['contentDetails'] ?? [];
+
+        return [
+            'id'               => $videoId,
+            'title'            => $snippet['title'] ?? null,
+            'description'      => $snippet['description'] ?? null,
+            'thumbnail_url'    => $snippet['thumbnails']['high']['url']
+                               ?? $snippet['thumbnails']['medium']['url']
+                               ?? $snippet['thumbnails']['default']['url']
+                               ?? null,
+            'channel_title'    => $snippet['channelTitle'] ?? null,
+            'published_at'     => $snippet['publishedAt'] ?? null,
+            'duration_seconds' => self::iso8601DurationToSeconds($contentDetails['duration'] ?? ''),
+            'embed_url'        => 'https://www.youtube.com/embed/' . $videoId,
+            'watch_url'        => 'https://www.youtube.com/watch?v=' . $videoId,
+        ];
+    }
+
+    /**
+     * Convert ISO 8601 duration (e.g. PT1H23M45S) to total seconds.
+     */
+    public static function iso8601DurationToSeconds(string $duration): int
+    {
+        if (! preg_match('/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/', $duration, $m)) {
+            return 0;
+        }
+        return ((int)($m[1] ?? 0)) * 3600
+             + ((int)($m[2] ?? 0)) * 60
+             + ((int)($m[3] ?? 0));
     }
 
     // ── OAuth ──────────────────────────────────────────────────────────────

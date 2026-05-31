@@ -22,7 +22,7 @@ class RecordingController extends Controller
         return view('teacher.recordings.index', compact('liveSession', 'recordings'));
     }
 
-    public function store(Request $request, LiveSession $liveSession)
+    public function store(Request $request, LiveSession $liveSession, YouTubeService $youtube)
     {
         abort_if($liveSession->teacher_id !== auth()->id(), 403);
 
@@ -43,6 +43,24 @@ class RecordingController extends Controller
                 $request->title,
                 $request->source ?? 'zoom'
             );
+
+            // Auto-enrich YouTube links with public metadata via the API key
+            if ($request->source === 'youtube') {
+                $details = $youtube->fetchVideoDetails($request->external_url);
+                if ($details) {
+                    $recording->update([
+                        'youtube_video_id' => $details['id'],
+                        'youtube_url'      => $details['watch_url'],
+                        'youtube_status'   => 'uploaded',
+                        'thumbnail_url'    => $details['thumbnail_url'],
+                        'duration_seconds' => $details['duration_seconds'],
+                    ]);
+                    // Use API-fetched title if the teacher left it blank/generic
+                    if ($details['title'] && $request->title === ($details['title'] ?? '')) {
+                        // title already set from form, keep it
+                    }
+                }
+            }
         }
 
         return back()->with('success', 'Recording added: '.$recording->title);
