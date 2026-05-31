@@ -1,5 +1,23 @@
 <x-app-layout>
     <x-slot name="title">Chiedza — AI Companion</x-slot>
+    @push('head')
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+    <style>
+        .prose-chat h1,.prose-chat h2,.prose-chat h3{font-weight:700;margin:.6em 0 .3em}
+        .prose-chat h1{font-size:1.15em}.prose-chat h2{font-size:1.05em}.prose-chat h3{font-size:1em}
+        .prose-chat ul,.prose-chat ol{padding-left:1.25em;margin:.4em 0}
+        .prose-chat ul{list-style:disc}.prose-chat ol{list-style:decimal}
+        .prose-chat li{margin:.15em 0}
+        .prose-chat p{margin:.3em 0}
+        .prose-chat strong{font-weight:700}
+        .prose-chat em{font-style:italic}
+        .prose-chat code{background:#e8edf4;border-radius:3px;padding:.1em .3em;font-family:monospace;font-size:.85em}
+        .prose-chat pre{background:#1e293b;color:#e2e8f0;border-radius:.5em;padding:.75em;overflow-x:auto;margin:.5em 0}
+        .prose-chat pre code{background:none;padding:0;color:inherit}
+        .prose-chat blockquote{border-left:3px solid #6366f1;padding-left:.75em;color:#475569;margin:.4em 0;font-style:italic}
+    </style>
+    @endpush
 
     <div class="page-header">
         <div class="flex items-center justify-between">
@@ -77,8 +95,9 @@
                     <div class="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed
                         {{ $message['role'] === 'user'
                             ? 'bg-indigo-600 text-white rounded-tr-none'
-                            : 'bg-slate-100 text-slate-800 rounded-tl-none' }}">
-                        {!! nl2br(e($message['content'])) !!}
+                            : 'bg-slate-100 text-slate-800 rounded-tl-none prose-chat' }}"
+                        @if($message['role'] === 'assistant') data-md="{{ $message['content'] }}"@endif>
+                        @if($message['role'] === 'user'){{ $message['content'] }}@endif
                     </div>
                     @if($message['role'] === 'user')
                     <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-1 uppercase">
@@ -113,4 +132,20 @@
             </div>
         </div>
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-md]').forEach(function (el) {
+        var md = el.getAttribute('data-md');
+        el.removeAttribute('data-md');
+        if (typeof marked !== 'undefined') {
+            var html = marked.parse(md, { breaks: true, gfm: true });
+            el.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
+        } else {
+            el.textContent = md;
+        }
+    });
+    var msgs = document.getElementById('chat-messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+});
+</script>
 </x-app-layout>

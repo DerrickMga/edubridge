@@ -23,6 +23,7 @@ class YouTubeService
     public const SCOPES = [
         'https://www.googleapis.com/auth/youtube.upload',
         'https://www.googleapis.com/auth/youtube.readonly',
+        'https://www.googleapis.com/auth/calendar.events',  // Google Meet creation via Calendar API
     ];
 
     protected string $clientId;

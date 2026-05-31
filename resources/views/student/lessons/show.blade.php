@@ -2,15 +2,16 @@
     <x-slot name="title">{{ $lesson->title }}</x-slot>
 
     @php
-        // Recorded sessions deep-linked to this lesson (or course-wide if none).
+        // Recorded sessions for this lesson — lesson-specific ones first,
+        // then course-wide recordings (not tied to a specific lesson) as fallback.
         $sessionRecordings = \App\Models\Recording::query()
             ->where('course_id', $lesson->course_id)
-            ->where(function ($q) use ($lesson) {
-                $q->where('lesson_id', $lesson->id)
-                  ->orWhereNotNull('youtube_video_id');
-            })
             ->whereNotNull('youtube_video_id')
             ->where('is_public', true)
+            ->where(function ($q) use ($lesson) {
+                $q->where('lesson_id', $lesson->id)
+                  ->orWhereNull('lesson_id');
+            })
             ->orderByRaw('CASE WHEN lesson_id = ? THEN 0 ELSE 1 END', [$lesson->id])
             ->latest()
             ->get();
@@ -85,7 +86,7 @@
 
             {{-- Recorded live sessions (deep-linked YouTube replays) --}}
             @if($sessionRecordings->isNotEmpty())
-            <div class="card overflow-hidden">
+            <div id="session-recordings" class="card overflow-hidden">
                 <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
                     <span class="text-red-600 font-bold text-xs">YouTube</span>
                     <h3 class="font-semibold text-slate-800 text-sm">Recorded Live Sessions</h3>
@@ -200,6 +201,16 @@
                     </svg>
                     My Assignments
                 </a>
+                @if($sessionRecordings->isNotEmpty())
+                <a href="#session-recordings"
+                    class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-red-50 hover:bg-red-100 transition-colors text-red-700 text-sm font-medium">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/>
+                    </svg>
+                    Session Replays
+                    <span class="ml-auto text-xs bg-red-100 text-red-700 rounded-full px-1.5 py-0.5 font-semibold">{{ $sessionRecordings->count() }}</span>
+                </a>
+                @endif
             </div>
 
             <div class="card overflow-hidden sticky top-6">

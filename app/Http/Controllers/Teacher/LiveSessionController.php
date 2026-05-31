@@ -5,17 +5,22 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\LiveSession;
+use App\Services\GoogleMeetService;
 use App\Services\ZoomService;
 use Illuminate\Http\Request;
 
 class LiveSessionController extends Controller
 {
-    public function __construct(private ZoomService $zoom) {}
+    public function __construct(
+        private ZoomService $zoom,
+        private GoogleMeetService $meet,
+    ) {}
 
     public function create(Request $request)
     {
-        $courses = $request->user()->courses()->orderBy('title')->get();
-        return view('teacher.live-sessions.create', compact('courses'));
+        $courses       = $request->user()->courses()->orderBy('title')->get();
+        $meetConnected = $this->meet->isConnected($request->user());
+        return view('teacher.live-sessions.create', compact('courses', 'meetConnected'));
     }
 
     public function store(Request $request)
@@ -35,6 +40,23 @@ class LiveSessionController extends Controller
 
         $data['teacher_id'] = $request->user()->id;
         $data['status']     = 'scheduled';
+
+        // Auto-create Google Meet if provider is Meet and no URL given
+        if ($data['provider'] === 'Meet' && empty($data['meeting_url'])) {
+            try {
+                $meeting = $this->meet->createMeeting(
+                    $request->user(),
+                    $data['title'],
+                    \Carbon\Carbon::parse($data['scheduled_at'])->utc()->toIso8601String(),
+                    (int) $data['duration_minutes'],
+                );
+                $data['meeting_url'] = $meeting['join_url'];
+                $data['meeting_id']  = $meeting['event_id'] ?? null;
+            } catch (\Throwable $e) {
+                return back()->withInput()
+                    ->withErrors(['meet' => 'Could not create Google Meet: ' . $e->getMessage()]);
+            }
+        }
 
         // Auto-create Zoom meeting if provider is Zoom and no URL given
         if ($data['provider'] === 'Zoom' && empty($data['meeting_url'])) {
@@ -62,8 +84,9 @@ class LiveSessionController extends Controller
     public function edit(LiveSession $liveSession)
     {
         abort_if($liveSession->teacher_id !== auth()->id(), 403);
-        $courses = auth()->user()->courses()->orderBy('title')->get();
-        return view('teacher.live-sessions.edit', compact('liveSession', 'courses'));
+        $courses       = auth()->user()->courses()->orderBy('title')->get();
+        $meetConnected = $this->meet->isConnected(auth()->user());
+        return view('teacher.live-sessions.edit', compact('liveSession', 'courses', 'meetConnected'));
     }
 
     public function update(Request $request, LiveSession $liveSession)
@@ -84,6 +107,38 @@ class LiveSessionController extends Controller
         if ((int) $data['course_id'] !== $liveSession->course_id) {
             $course = Course::findOrFail($data['course_id']);
             abort_if($course->teacher_id !== auth()->id(), 403);
+        }
+
+        // Sync with Google Meet API when provider is Meet
+        if ($data['provider'] === 'Meet') {
+            $existingEventId = $liveSession->meeting_id;
+
+            if ($existingEventId) {
+                // Best-effort update the calendar event title/time
+                $this->meet->updateMeeting(
+                    auth()->user(),
+                    $existingEventId,
+                    $data['title'],
+                    \Carbon\Carbon::parse($data['scheduled_at'])->utc()->toIso8601String(),
+                    (int) $data['duration_minutes'],
+                );
+                $data['meeting_id']  = $data['meeting_id']  ?: $existingEventId;
+                $data['meeting_url'] = $data['meeting_url'] ?: $liveSession->meeting_url;
+            } elseif (empty($data['meeting_url'])) {
+                try {
+                    $meeting = $this->meet->createMeeting(
+                        auth()->user(),
+                        $data['title'],
+                        \Carbon\Carbon::parse($data['scheduled_at'])->utc()->toIso8601String(),
+                        (int) $data['duration_minutes'],
+                    );
+                    $data['meeting_url'] = $meeting['join_url'];
+                    $data['meeting_id']  = $meeting['event_id'] ?? null;
+                } catch (\Throwable $e) {
+                    return back()->withInput()
+                        ->withErrors(['meet' => 'Could not create Google Meet: ' . $e->getMessage()]);
+                }
+            }
         }
 
         // Sync with Zoom API when provider is Zoom
@@ -133,6 +188,11 @@ class LiveSessionController extends Controller
     public function destroy(LiveSession $liveSession)
     {
         abort_if($liveSession->teacher_id !== auth()->id(), 403);
+
+        // Delete from Google Calendar if Meet session was auto-created
+        if ($liveSession->provider === 'Meet' && $liveSession->meeting_id) {
+            $this->meet->deleteEvent(auth()->user(), $liveSession->meeting_id);
+        }
 
         // Delete from Zoom if it was auto-created
         if ($liveSession->provider === 'Zoom' && $liveSession->meeting_id) {

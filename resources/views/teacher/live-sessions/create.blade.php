@@ -124,6 +124,23 @@
                     </div>
                 </div>
 
+                {{-- Google Meet auto-create notice --}}
+                <div x-show="provider === 'Meet'"
+                     class="flex items-start gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+                    <span class="text-lg flex-shrink-0">🎥</span>
+                    <div>
+                        @if($meetConnected)
+                        <p class="font-semibold">Google Meet will be created automatically</p>
+                        <p class="text-xs text-green-600 mt-0.5">A Meet link will be provisioned via your connected Google Calendar when you click "Schedule Session". Leave the URL field blank.</p>
+                        @else
+                        <p class="font-semibold">Connect Google to auto-create Meet sessions</p>
+                        <p class="text-xs text-green-700 mt-0.5">
+                            <a href="{{ route('teacher.youtube.connect') }}" class="underline font-semibold">Connect your Google account</a> to auto-generate Meet links. Or paste a Meet URL below to schedule manually.
+                        </p>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="meeting_url">
                         Meeting URL
@@ -142,6 +159,9 @@
                 </div>
 
                 @error('zoom')
+                <p class="text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
+                @enderror
+                @error('meet')
                 <p class="text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
                 @enderror
             </div>

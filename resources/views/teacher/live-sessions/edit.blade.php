@@ -120,6 +120,33 @@
                 </div>
                 @endif
 
+                {{-- Google Meet notice --}}
+                @if($liveSession->provider === 'Meet' && $liveSession->meeting_id)
+                <div class="flex items-start gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+                    <span class="text-lg flex-shrink-0">🎥</span>
+                    <div>
+                        <p class="font-semibold">Google Meet is active</p>
+                        <p class="text-xs text-green-600 mt-0.5">Saving changes will update the event time in Google Calendar automatically.</p>
+                    </div>
+                </div>
+                @else
+                <div x-show="provider === 'Meet'"
+                     class="flex items-start gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+                    <span class="text-lg flex-shrink-0">🎥</span>
+                    <div>
+                        @if($meetConnected)
+                        <p class="font-semibold">Google Meet will be created automatically</p>
+                        <p class="text-xs text-green-600 mt-0.5">Leave the URL blank to auto-create a Meet link via your connected Google Calendar.</p>
+                        @else
+                        <p class="font-semibold">Connect Google to auto-create Meet sessions</p>
+                        <p class="text-xs text-green-700 mt-0.5">
+                            <a href="{{ route('teacher.youtube.connect') }}" class="underline font-semibold">Connect your Google account</a> to auto-generate Meet links, or paste a Meet URL below.
+                        </p>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <div class="form-group">
                     <label class="form-label" for="meeting_url">Meeting URL</label>
                     <input type="url" name="meeting_url" id="meeting_url" class="form-input"
@@ -133,6 +160,9 @@
                 </div>
 
                 @error('zoom')
+                <p class="text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
+                @enderror
+                @error('meet')
                 <p class="text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
                 @enderror
             </div>

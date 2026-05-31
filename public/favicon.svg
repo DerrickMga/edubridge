@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="480" height="160" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <!-- Zimbabwe-inspired warm gold to deep green gradient -->
+    <linearGradient id="bridgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1B5E20"/>
+      <stop offset="50%" style="stop-color:#2E7D32"/>
+      <stop offset="100%" style="stop-color:#1B5E20"/>
+    </linearGradient>
+    <linearGradient id="archGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#F9A825"/>
+      <stop offset="100%" style="stop-color:#FFD54F"/>
+    </linearGradient>
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD54F"/>
+      <stop offset="100%" style="stop-color:#F9A825"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0a2e0a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background pill -->
+  <rect x="0" y="0" width="480" height="160" rx="16" ry="16" fill="#0D2F0D"/>
+
+  <!-- Subtle texture dots -->
+  <circle cx="440" cy="20" r="60" fill="#1B5E20" opacity="0.3"/>
+  <circle cx="40" cy="140" r="50" fill="#1B5E20" opacity="0.2"/>
+
+  <!-- ===== BRIDGE ICON (left side) ===== -->
+  <!-- Bridge deck / road base -->
+  <rect x="28" y="104" width="104" height="7" rx="3.5" fill="url(#archGrad)" filter="url(#softShadow)"/>
+
+  <!-- Left arch -->
+  <path d="M 36 111 Q 50 70 80 68 Q 110 70 124 111" 
+        fill="none" stroke="url(#archGrad)" stroke-width="6" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Right arch (smaller, perspective) -->
+  <path d="M 60 111 Q 70 82 80 80 Q 90 82 100 111"
+        fill="none" stroke="#FFD54F" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+
+  <!-- Vertical supports/pillars -->
+  <rect x="34" y="70" width="5" height="34" rx="2.5" fill="url(#archGrad)"/>
+  <rect x="121" y="70" width="5" height="34" rx="2.5" fill="url(#archGrad)"/>
+
+  <!-- Suspension cables from top of arch -->
+  <line x1="50" y1="82" x2="50" y2="104" stroke="#FFD54F" stroke-width="1.5" opacity="0.7"/>
+  <line x1="63" y1="74" x2="63" y2="104" stroke="#FFD54F" stroke-width="1.5" opacity="0.7"/>
+  <line x1="80" y1="70" x2="80" y2="104" stroke="#FFD54F" stroke-width="1.5" opacity="0.7"/>
+  <line x1="97" y1="74" x2="97" y2="104" stroke="#FFD54F" stroke-width="1.5" opacity="0.7"/>
+  <line x1="110" y1="82" x2="110" y2="104" stroke="#FFD54F" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- Open book above bridge (education symbol) -->
+  <!-- Left page -->
+  <path d="M 58 52 Q 72 44 80 48 L 80 66 Q 72 62 58 68 Z" 
+        fill="#FFD54F" opacity="0.92"/>
+  <!-- Right page -->
+  <path d="M 102 52 Q 88 44 80 48 L 80 66 Q 88 62 102 68 Z" 
+        fill="#F9A825" opacity="0.85"/>
+  <!-- Book spine line -->
+  <line x1="80" y1="48" x2="80" y2="66" stroke="#1B5E20" stroke-width="1.5"/>
+  <!-- Page lines left -->
+  <line x1="63" y1="55" x2="76" y2="52" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+  <line x1="63" y1="59" x2="76" y2="56" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+  <line x1="63" y1="63" x2="76" y2="60" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+  <!-- Page lines right -->
+  <line x1="97" y1="55" x2="84" y2="52" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+  <line x1="97" y1="59" x2="84" y2="56" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+  <line x1="97" y1="63" x2="84" y2="60" stroke="#1B5E20" stroke-width="1" opacity="0.5"/>
+
+  <!-- Subtle star/sparkle top right of book -->
+  <circle cx="104" cy="46" r="3" fill="#FFD54F" opacity="0.8" filter="url(#glow)"/>
+  <line x1="104" y1="40" x2="104" y2="52" stroke="#FFD54F" stroke-width="1" opacity="0.6"/>
+  <line x1="98" y1="46" x2="110" y2="46" stroke="#FFD54F" stroke-width="1" opacity="0.6"/>
+
+  <!-- ===== WORDMARK ===== -->
+  <!-- "Edu" in gold -->
+  <text x="148" y="95" 
+        font-family="Georgia, 'Times New Roman', serif" 
+        font-size="52" 
+        font-weight="700"
+        letter-spacing="-1"
+        fill="url(#goldText)"
+        filter="url(#softShadow)">Edu</text>
+
+  <!-- "Bridge" in white/light -->
+  <text x="228" y="95" 
+        font-family="Georgia, 'Times New Roman', serif" 
+        font-size="52" 
+        font-weight="400"
+        letter-spacing="-1"
+        fill="#E8F5E9">Bridge</text>
+
+  <!-- Tagline -->
+  <text x="148" y="118" 
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="13.5"
+        font-weight="400"
+        letter-spacing="3.5"
+        fill="#81C784"
+        opacity="0.9">QUALITY EDUCATION · ZIMBABWE</text>
+
+  <!-- Thin gold rule under tagline -->
+  <rect x="148" y="126" width="280" height="1.5" rx="1" fill="#F9A825" opacity="0.4"/>
+
+  <!-- KMG Vital Links sub-brand tiny -->
+  <text x="148" y="143" 
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="10.5"
+        letter-spacing="1.5"
+        fill="#4CAF50"
+        opacity="0.7">A KMG VITAL LINKS PLATFORM</text>
+</svg>

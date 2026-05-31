@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">Chat with your AI Companion</x-slot>
+    <x-slot name="title">Chiedza — AI Companion</x-slot>
     @push('head')
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
@@ -106,9 +106,10 @@
                                 {{ $msg->role === 'user'
                                     ? 'bg-green-700 text-white rounded-br-sm'
                                     : ($msg->model_used === 'gpt'
-                                        ? 'bg-blue-50 border border-blue-200 text-gray-800 rounded-bl-sm'
-                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm') }}">
-                                {!! nl2br(e($msg->content)) !!}
+                                        ? 'bg-blue-50 border border-blue-200 text-gray-800 rounded-bl-sm prose-chat'
+                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm prose-chat') }}"
+                                @if($msg->role === 'assistant') data-md="{{ $msg->content }}"@endif>
+                                @if($msg->role === 'user'){{ $msg->content }}@endif
                             </div>
                         </div>
                     </div>
@@ -307,7 +308,16 @@ function companionChat() {
         planForm: { subject: '{{ $conversation->subject ?? "" }}', level: '{{ $conversation->level ?? "" }}', weeks: 8, topicsText: '' },
 
         init() {
+            this.renderHistoryMarkdown();
             this.scrollToBottom();
+        },
+
+        renderHistoryMarkdown() {
+            document.querySelectorAll('[data-md]').forEach(el => {
+                const md = el.getAttribute('data-md');
+                el.removeAttribute('data-md');
+                el.innerHTML = this.renderMarkdown(md);
+            });
         },
 
         onFileSelected(event) {
