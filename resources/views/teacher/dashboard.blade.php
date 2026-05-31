@@ -9,6 +9,25 @@
     </div>
     @endif
 
+    @php
+        $__policySvc = app(\App\Services\PolicyService::class);
+        $__teacherUser = auth()->user();
+        $__outstanding = $__policySvc->outstandingPoliciesFor($__teacherUser);
+        $__hasContract = $__teacherUser->hasSignedContract();
+    @endphp
+    @if(! $__hasContract || $__outstanding->isNotEmpty())
+    <div class="mb-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900 flex items-start justify-between gap-3">
+        <div>
+            <p class="font-semibold">Action required</p>
+            <ul class="list-disc list-inside mt-1 space-y-0.5">
+                @if(! $__hasContract)<li>Your teaching contract is not yet signed.</li>@endif
+                @if($__outstanding->isNotEmpty())<li>{{ $__outstanding->count() }} policy{{ $__outstanding->count() === 1 ? '' : 'ies' }} await your acknowledgement.</li>@endif
+            </ul>
+        </div>
+        <a href="{{ route('teacher.policies.index') }}" class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 whitespace-nowrap">Review now →</a>
+    </div>
+    @endif
+
     {{-- Page Header ──────────────────────────────────────────────────────── --}}
     <div class="page-header flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>

@@ -70,4 +70,3 @@ class CourseController extends Controller
         return back()->with('success', 'Course "' . $title . '" was deleted.');
     }
 }
-}

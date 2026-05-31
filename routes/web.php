@@ -250,6 +250,13 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::delete('availability/time-off/{timeOff}', [\App\Http\Controllers\Teacher\AvailabilityController::class, 'destroyTimeOff'])->name('availability.time-off.destroy');
     Route::post('availability/status',             [\App\Http\Controllers\Teacher\AvailabilityController::class, 'setStatus'])->name('availability.status');
     Route::get('shifts',                           [\App\Http\Controllers\Teacher\ShiftController::class, 'index'])->name('shifts.index');
+
+    // Policy library + contract
+    Route::get('policies',                         [\App\Http\Controllers\Teacher\PolicyController::class, 'index'])->name('policies.index');
+    Route::get('policies/contract',                [\App\Http\Controllers\Teacher\PolicyController::class, 'contract'])->name('policies.contract');
+    Route::post('policies/contract/{contract}/sign', [\App\Http\Controllers\Teacher\PolicyController::class, 'sign'])->name('policies.contract.sign');
+    Route::get('policies/{policy}',                [\App\Http\Controllers\Teacher\PolicyController::class, 'show'])->name('policies.show');
+    Route::post('policies/{policy}/ack',           [\App\Http\Controllers\Teacher\PolicyController::class, 'acknowledge'])->name('policies.acknowledge');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -320,6 +327,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('workforce/shifts',          [\App\Http\Controllers\Admin\WorkforceController::class, 'storeShift'])->name('workforce.shifts.store');
     Route::delete('workforce/shifts/{shift}',[\App\Http\Controllers\Admin\WorkforceController::class, 'destroyShift'])->name('workforce.shifts.destroy');
     Route::get('workforce/suggest',          [\App\Http\Controllers\Admin\WorkforceController::class, 'suggest'])->name('workforce.suggest');
+
+    // Teacher Policies, Contracts, Contingency Matrix
+    Route::get('policies',                                 [\App\Http\Controllers\Admin\PolicyController::class, 'index'])->name('policies.index');
+    Route::get('policies/create',                          [\App\Http\Controllers\Admin\PolicyController::class, 'createPolicy'])->name('policies.create');
+    Route::post('policies',                                [\App\Http\Controllers\Admin\PolicyController::class, 'storePolicy'])->name('policies.store');
+    Route::patch('policies/{policy}/toggle',               [\App\Http\Controllers\Admin\PolicyController::class, 'togglePolicy'])->name('policies.toggle');
+    Route::get('policies/contracts/{teacher}',             [\App\Http\Controllers\Admin\PolicyController::class, 'showContract'])->name('policies.contract.show');
+    Route::post('policies/contracts/{teacher}/issue',      [\App\Http\Controllers\Admin\PolicyController::class, 'issueContract'])->name('policies.contract.issue');
+    Route::post('policies/contracts/{contract}/terminate', [\App\Http\Controllers\Admin\PolicyController::class, 'terminateContract'])->name('policies.contract.terminate');
+    Route::get('policies/matrix',                          [\App\Http\Controllers\Admin\PolicyController::class, 'matrix'])->name('policies.matrix');
+    Route::post('policies/matrix/events',                  [\App\Http\Controllers\Admin\PolicyController::class, 'storeMatrixEvent'])->name('policies.matrix.events.store');
+    Route::post('policies/matrix/incidents',               [\App\Http\Controllers\Admin\PolicyController::class, 'logIncident'])->name('policies.matrix.incidents.store');
+    Route::patch('policies/matrix/incidents/{incident}',   [\App\Http\Controllers\Admin\PolicyController::class, 'updateIncident'])->name('policies.matrix.incidents.update');
 });
 
 Route::middleware('auth')->group(function () {

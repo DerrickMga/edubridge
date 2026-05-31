@@ -53,6 +53,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function availabilityWindows(){ return $this->hasMany(TeacherAvailability::class, 'teacher_id'); }
     public function timeOff()           { return $this->hasMany(TeacherTimeOff::class, 'teacher_id'); }
 
+    // Policy & contract
+    public function contracts()          { return $this->hasMany(TeacherContract::class, 'teacher_id'); }
+    public function policyAcknowledgements() { return $this->hasMany(TeacherPolicyAcknowledgement::class, 'teacher_id'); }
+    public function riskIncidents()      { return $this->hasMany(PolicyRiskIncident::class, 'teacher_id'); }
+
+    public function activeContract(): ?TeacherContract
+    {
+        return $this->contracts()->where('status', 'signed')->latest('signed_at')->first();
+    }
+
+    public function hasSignedContract(): bool
+    {
+        $c = $this->activeContract();
+        return $c !== null && ! $c->isExpired();
+    }
+
     public function isOnline(): bool
     {
         if ($this->availability_status === 'offline') return false;
