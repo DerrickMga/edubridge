@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Course, Payment};
+use App\Models\Setting;
 use App\Services\Payment\StripeService;
 use App\Services\Payment\PaynowService;
 use App\Services\Payment\EcoCashService;
@@ -12,21 +13,28 @@ use Illuminate\Http\RedirectResponse;
 
 class PaymentController extends Controller
 {
-    /** Period multipliers relative to base course price. */
-    private const PERIOD_RATES = [
-        'monthly' => 0.20,
-        'termly'  => 0.45,
-        'annual'  => 0.80,
-        'lifetime'=> 1.00,
-    ];
-
     /** Period labels shown in UI. */
     public const PERIOD_LABELS = [
+        'hourly'  => '1 Hour',
         'monthly' => '1 Month',
         'termly'  => '1 Term (3 months)',
-        'annual'  => '1 Year',
-        'lifetime'=> 'Lifetime access',
     ];
+
+    /** Load live prices from settings table. */
+    private static function periodPrices(): array
+    {
+        return [
+            'hourly'  => (float) Setting::get('price_hourly',  1.00),
+            'monthly' => (float) Setting::get('price_monthly', 5.00),
+            'termly'  => (float) Setting::get('price_termly',  10.00),
+        ];
+    }
+
+    /** Load live ZWG rate from settings table. */
+    private static function zwgRate(): float
+    {
+        return (float) Setting::get('price_zwg_rate', 30);
+    }
 
     public function __construct(
         private readonly StripeService   $stripe,
@@ -45,23 +53,22 @@ class PaymentController extends Controller
                 ->with('info', 'You are already enrolled in this course.');
         }
 
-        // Free course — auto-enrol
-        if ($course->price_usd <= 0 && $course->price_zwg <= 0) {
-            $course->enrollments()->syncWithoutDetaching([auth()->id() => [
-                'status'        => 'active',
-                'access_period' => 'lifetime',
-                'expires_at'    => null,
-            ]]);
-            return redirect()->route('student.dashboard')
-                ->with('success', 'You have been enrolled in ' . $course->title . '!');
-        }
+        // TODO: Enrollment is temporarily free — skip payment for all courses
+        $course->enrollments()->syncWithoutDetaching([auth()->id() => [
+            'status'        => 'active',
+            'access_period' => 'termly',
+            'expires_at'    => now()->addMonths(3),
+        ]]);
+        return redirect()->route('student.dashboard')
+            ->with('success', 'You have been enrolled in ' . $course->title . '!');
 
-        // Calculate period pricing tiers (USD)
-        $periodPricing = collect(self::PERIOD_RATES)->map(fn($rate, $key) => [
-            'key'       => $key,
-            'label'     => self::PERIOD_LABELS[$key],
-            'usd'       => round($course->price_usd * $rate, 2),
-            'zwg'       => round(($course->price_zwg ?? 0) * $rate, 0),
+        // Build period pricing for checkout view (reached when above TODO is removed)
+        $zwgRate      = self::zwgRate();
+        $periodPricing = collect(self::periodPrices())->map(fn($usd, $key) => [
+            'key'   => $key,
+            'label' => self::PERIOD_LABELS[$key],
+            'usd'   => $usd,
+            'zwg'   => round($usd * $zwgRate, 0),
         ]);
 
         return view('payments.checkout', compact('course', 'periodPricing'));
@@ -73,15 +80,14 @@ class PaymentController extends Controller
 
         $request->validate([
             'provider'      => ['required', 'in:stripe,paynow_zw,ecocash,innbucks,payfast'],
-            'access_period' => ['required', 'in:monthly,termly,annual,lifetime'],
+            'access_period' => ['required', 'in:hourly,monthly,termly'],
         ]);
 
-        $isLocal = $request->user()->country === 'ZW'
+        $isLocal   = $request->user()->country === 'ZW'
             || in_array($request->provider, ['paynow_zw', 'ecocash', 'innbucks']);
 
-        $basePrice = $isLocal ? ($course->price_zwg ?? 0) : $course->price_usd;
-        $rate      = self::PERIOD_RATES[$request->access_period] ?? 1.00;
-        $amount    = round($basePrice * $rate, 2);
+        $usdAmount = self::periodPrices()[$request->access_period];
+        $amount    = $isLocal ? round($usdAmount * self::zwgRate(), 0) : $usdAmount;
 
         // PayFast charges in ZAR — store USD, service converts on redirect
         $currency = match ($request->provider) {

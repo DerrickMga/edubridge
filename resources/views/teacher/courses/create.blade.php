@@ -54,20 +54,14 @@
                               placeholder="What will students learn? What makes this course valuable?">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="grid sm:grid-cols-2 gap-5">
-                    <div class="form-group">
-                        <label class="form-label">Price (USD)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <input type="number" name="price_usd" value="{{ old('price_usd', 0) }}"
-                                   min="0" step="0.01" class="form-input pl-7">
-                        </div>
-                        <p class="form-hint">Set to 0 for a free course.</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Price (ZWG)</label>
-                        <input type="number" name="price_zwg" value="{{ old('price_zwg', 0) }}"
-                               min="0" step="0.01" class="form-input">
+                <div class="form-group">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        <p class="font-semibold text-slate-700 mb-1">Platform pricing applies to all courses</p>
+                        <ul class="space-y-0.5 text-slate-500">
+                            <li>1 Hour &mdash; <span class="font-medium text-slate-700">$1.00</span> / ZWG 30</li>
+                            <li>1 Month &mdash; <span class="font-medium text-slate-700">$5.00</span> / ZWG 150</li>
+                            <li>1 Term (3 months) &mdash; <span class="font-medium text-slate-700">$10.00</span> / ZWG 300</li>
+                        </ul>
                     </div>
                 </div>
 

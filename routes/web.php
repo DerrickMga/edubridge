@@ -24,6 +24,7 @@ use App\Http\Controllers\Teacher\RecordingController;
 use App\Http\Controllers\Teacher\SessionLogController;
 use App\Http\Controllers\Admin\SessionReportController as AdminSessionReportController;
 use App\Http\Controllers\Admin\TeacherPaymentController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Teacher\ResourceController;
 use App\Http\Controllers\Teacher\AiToolsController;
 use App\Http\Controllers\Student\EnrollmentController;
@@ -206,6 +207,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('ai-tools/broadcast-draft',                  [AdminAiController::class, 'broadcastDraft'])->name('ai-tools.broadcast');
     Route::post('ai-tools/generate-description',             [AdminAiController::class, 'generateCourseDescription'])->name('ai-tools.course-desc');
     Route::post('ai-tools/generate-quiz',                    [AdminAiController::class, 'generateQuiz'])->name('ai-tools.quiz');
+
+    // Platform Settings
+    Route::get('settings/pricing',                           [AdminSettingController::class, 'index'])->name('settings.pricing');
+    Route::patch('settings/pricing',                         [AdminSettingController::class, 'update'])->name('settings.pricing.update');
 });
 
 Route::middleware('auth')->group(function () {
