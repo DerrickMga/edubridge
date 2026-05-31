@@ -160,6 +160,24 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
         Route::post('companion/{conversation}/study-plan', [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
         Route::post('companion/{conversation}/notes',      [CompanionController::class, 'notes'])->name('companion.notes');
     });
+
+    // Reviews
+    Route::post('courses/{course}/reviews',   [\App\Http\Controllers\Student\ReviewController::class, 'store'])->name('courses.reviews.store');
+    Route::delete('reviews/{review}',         [\App\Http\Controllers\Student\ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Wishlist
+    Route::get('wishlist',                    [\App\Http\Controllers\Student\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('wishlist/{course}/toggle',   [\App\Http\Controllers\Student\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Lesson notes
+    Route::get('notes',                       [\App\Http\Controllers\Student\LessonNoteController::class, 'index'])->name('notes.index');
+    Route::post('lessons/{lesson}/notes',     [\App\Http\Controllers\Student\LessonNoteController::class, 'store'])->name('notes.store');
+    Route::delete('notes/{note}',             [\App\Http\Controllers\Student\LessonNoteController::class, 'destroy'])->name('notes.destroy');
+
+    // Refunds
+    Route::get('refunds',                       [\App\Http\Controllers\Student\RefundController::class, 'index'])->name('refunds.index');
+    Route::get('refunds/{payment}/create',      [\App\Http\Controllers\Student\RefundController::class, 'create'])->name('refunds.create');
+    Route::post('refunds/{payment}',            [\App\Http\Controllers\Student\RefundController::class, 'store'])->name('refunds.store');
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
@@ -264,6 +282,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::post('policies/contract/{contract}/sign', [\App\Http\Controllers\Teacher\PolicyController::class, 'sign'])->name('policies.contract.sign');
     Route::get('policies/{policy}',                [\App\Http\Controllers\Teacher\PolicyController::class, 'show'])->name('policies.show');
     Route::post('policies/{policy}/ack',           [\App\Http\Controllers\Teacher\PolicyController::class, 'acknowledge'])->name('policies.acknowledge');
+
+    // Grade book + per-student progress
+    Route::get('courses/{course}/gradebook',                       [\App\Http\Controllers\Teacher\GradeBookController::class, 'show'])->name('courses.gradebook');
+    Route::get('courses/{course}/progress',                        [\App\Http\Controllers\Teacher\StudentProgressController::class, 'show'])->name('courses.progress');
+    Route::get('courses/{course}/progress/{student}',              [\App\Http\Controllers\Teacher\StudentProgressController::class, 'student'])->name('courses.progress.student');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -354,6 +377,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('policies/matrix/events',                  [\App\Http\Controllers\Admin\PolicyController::class, 'storeMatrixEvent'])->name('policies.matrix.events.store');
     Route::post('policies/matrix/incidents',               [\App\Http\Controllers\Admin\PolicyController::class, 'logIncident'])->name('policies.matrix.incidents.store');
     Route::patch('policies/matrix/incidents/{incident}',   [\App\Http\Controllers\Admin\PolicyController::class, 'updateIncident'])->name('policies.matrix.incidents.update');
+
+    // Coupons + Refunds
+    Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)->except(['show']);
+    Route::get('refunds',                   [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('refunds.index');
+    Route::patch('refunds/{refund}',        [\App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
 });
 
 Route::middleware('auth')->group(function () {

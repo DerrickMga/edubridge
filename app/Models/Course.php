@@ -12,6 +12,12 @@ class Course extends Model
     protected $fillable = [
         'teacher_id','title','description','subject','grade_level',
         'thumbnail','status','price_usd','price_zwg','youtube_playlist_id',
+        'average_rating','reviews_count',
+    ];
+
+    protected $casts = [
+        'average_rating' => 'decimal:2',
+        'reviews_count'  => 'integer',
     ];
 
     public function teacher()       { return $this->belongsTo(User::class, 'teacher_id'); }
@@ -27,6 +33,8 @@ class Course extends Model
     public function discussions()   { return $this->hasMany(Discussion::class)->whereNull('parent_id')->orderByDesc('is_pinned')->latest(); }
     public function announcements() { return $this->hasMany(Announcement::class); }
     public function certificates()  { return $this->hasMany(Certificate::class); }
+    public function reviews()       { return $this->hasMany(CourseReview::class)->latest(); }
+    public function wishlistedBy()  { return $this->belongsToMany(User::class, 'wishlists')->withTimestamps(); }
 
     public function scopePublished($q) { return $q->where('status', 'published'); }
 

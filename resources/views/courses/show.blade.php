@@ -62,9 +62,12 @@
                 @if($course->description)
                     <p class="text-white/80 text-lg mb-4 max-w-2xl">{{ $course->description }}</p>
                 @endif
-                <div class="flex items-center gap-4 text-white/70 text-sm">
+                <div class="flex items-center gap-4 text-white/70 text-sm flex-wrap">
                     <span>👩‍🏫 {{ $course->teacher->name }}</span>
                     <span>📚 {{ $course->lessons_count }} lessons</span>
+                    @if(($course->reviews_count ?? 0) > 0)
+                        <span title="{{ $course->reviews_count }} review{{ $course->reviews_count === 1 ? '' : 's' }}">⭐ {{ number_format((float) $course->average_rating, 1) }} <span class="text-white/50">({{ $course->reviews_count }})</span></span>
+                    @endif
                 </div>
             </div>
 
@@ -121,6 +124,13 @@
                                 @else
                                     Enrol for Free
                                 @endif
+                            </button>
+                        </form>
+                        @php $__inWishlist = auth()->user()->wishlist()->where('courses.id', $course->id)->exists(); @endphp
+                        <form action="{{ route('student.wishlist.toggle', $course) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" class="w-full py-2 rounded-lg border border-slate-200 text-sm hover:bg-slate-50 {{ $__inWishlist ? 'text-rose-600' : 'text-slate-700' }}">
+                                {{ $__inWishlist ? '♥ Saved' : '♡ Save for later' }}
                             </button>
                         </form>
                     @else
@@ -212,6 +222,65 @@
             <h3 class="font-semibold text-emerald-900 text-sm mb-2">Browse by Subject</h3>
             <a href="{{ route('subjects.index') }}" class="text-xs text-emerald-700 hover:underline font-medium">View all subjects →</a>
         </div>
+    </div>
+</div>
+
+{{-- Reviews --}}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 pb-12">
+    <div class="flex items-end justify-between mb-4">
+        <h2 class="text-xl font-bold text-slate-900">Student Reviews</h2>
+        <div class="text-sm text-slate-500">
+            @if(($course->reviews_count ?? 0) > 0)
+                ⭐ <strong>{{ number_format((float) $course->average_rating, 1) }}</strong> · {{ $course->reviews_count }} review{{ $course->reviews_count === 1 ? '' : 's' }}
+            @else
+                No reviews yet
+            @endif
+        </div>
+    </div>
+
+    @auth
+        @if($isEnrolled)
+            @php $myReview = $course->reviews()->where('user_id', auth()->id())->first(); @endphp
+            <form method="POST" action="{{ route('student.courses.reviews.store', $course) }}" class="bg-white border border-slate-200 rounded-xl p-5 mb-5">
+                @csrf
+                <p class="text-sm font-semibold text-slate-800 mb-2">{{ $myReview ? 'Update your review' : 'Leave a review' }}</p>
+                <div class="flex gap-1 mb-3" x-data="{ rating: {{ $myReview->rating ?? 0 }} }">
+                    @for($r = 1; $r <= 5; $r++)
+                        <button type="button" @click="rating = {{ $r }}" class="text-2xl" :class="rating >= {{ $r }} ? 'text-amber-400' : 'text-slate-300'">★</button>
+                    @endfor
+                    <input type="hidden" name="rating" :value="rating" required>
+                </div>
+                <input type="text" name="title" maxlength="200" value="{{ $myReview->title ?? '' }}" placeholder="Title (optional)"
+                       class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 mb-2">
+                <textarea name="body" rows="3" maxlength="4000" placeholder="Share your experience…"
+                          class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200">{{ $myReview->body ?? '' }}</textarea>
+                @error('rating')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                <div class="text-right mt-2">
+                    <button class="px-4 py-2 text-sm rounded-lg bg-slate-900 text-white hover:bg-slate-800">{{ $myReview ? 'Update review' : 'Submit review' }}</button>
+                </div>
+            </form>
+        @endif
+    @endauth
+
+    <div class="space-y-3">
+        @forelse($course->reviews()->where('is_visible', true)->with('user')->take(20)->get() as $r)
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-700">{{ strtoupper(substr($r->user->name, 0, 1)) }}</div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800">{{ $r->user->name }}</p>
+                        <p class="text-xs text-slate-400">{{ $r->created_at->diffForHumans() }}</p>
+                    </div>
+                </div>
+                <p class="text-amber-500 text-sm">{{ str_repeat('★', $r->rating) }}<span class="text-slate-200">{{ str_repeat('★', 5 - $r->rating) }}</span></p>
+            </div>
+            @if($r->title)<p class="font-medium text-slate-900 mt-2 text-sm">{{ $r->title }}</p>@endif
+            @if($r->body)<p class="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{{ $r->body }}</p>@endif
+        </div>
+        @empty
+            <p class="text-sm text-slate-400">Be the first to share your thoughts on this course.</p>
+        @endforelse
     </div>
 </div>
 

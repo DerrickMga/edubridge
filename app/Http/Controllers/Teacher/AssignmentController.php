@@ -65,6 +65,7 @@ class AssignmentController extends Controller
             'feedback'   => $request->feedback,
             'status'     => 'graded',
             'graded_at'  => now(),
+            'graded_by'  => auth()->id(),
         ]);
 
         return back()->with('success', 'Submission graded.');
