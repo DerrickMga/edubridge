@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\LiveSession;
+use App\Models\TeacherAvailability;
 use App\Models\TeacherShift;
+use App\Models\TeacherTimeOff;
 use App\Models\User;
 use App\Services\ShiftAssignmentService;
 use Carbon\Carbon;
@@ -128,13 +130,16 @@ class WorkforceController extends Controller
             'hourly_rate_usd_snapshot' => $teacher->hourly_rate_usd,
         ]);
 
-        return back()->with('success', 'Shift created.');
+        return redirect()->route('admin.workforce.index', ['teacher' => $data['teacher_id']])
+            ->with('success', 'Shift created.');
     }
 
     public function destroyShift(TeacherShift $shift)
     {
+        $teacherId = $shift->teacher_id;
         $shift->delete();
-        return back()->with('success', 'Shift removed.');
+        return redirect()->route('admin.workforce.index', ['teacher' => $teacherId])
+            ->with('success', 'Shift removed.');
     }
 
     /** Suggest candidates for a given window (AJAX). */
@@ -159,5 +164,171 @@ class WorkforceController extends Controller
         ]);
 
         return response()->json(['candidates' => $ranked]);
+    }
+
+    /** Return teacher profile data as JSON for the panel. */
+    public function showTeacher(User $teacher)
+    {
+        $teacher->load([
+            'availabilityWindows',
+            'timeOff' => fn ($q) => $q->where('ends_at', '>=', now())->orderBy('starts_at'),
+        ]);
+
+        $weekStart = now()->startOfWeek();
+        $weekEnd   = now()->endOfWeek();
+
+        $weekShifts = TeacherShift::where('teacher_id', $teacher->id)
+            ->whereBetween('starts_at', [$weekStart, $weekEnd])
+            ->get();
+
+        $upcomingShifts = TeacherShift::where('teacher_id', $teacher->id)
+            ->where('starts_at', '>=', now())
+            ->where('status', 'scheduled')
+            ->orderBy('starts_at')
+            ->limit(8)
+            ->get();
+
+        $recentShifts = TeacherShift::where('teacher_id', $teacher->id)
+            ->where('starts_at', '<', now())
+            ->orderByDesc('starts_at')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'teacher' => [
+                'id'                  => $teacher->id,
+                'name'                => $teacher->name,
+                'email'               => $teacher->email,
+                'hourly_rate_usd'     => $teacher->hourly_rate_usd,
+                'timezone'            => $teacher->timezone ?? 'Africa/Harare',
+                'accepts_assignments' => (bool) $teacher->accepts_assignments,
+                'availability_status' => $teacher->availability_status,
+                'is_verified'         => $teacher->is_verified,
+                'qualification'       => $teacher->qualification,
+            ],
+            'this_week' => [
+                'hours'     => round($weekShifts->whereIn('status', ['scheduled', 'in_progress', 'completed'])->sum('duration_hours'), 2),
+                'payout'    => round($weekShifts->where('status', 'completed')->sum('payout_amount_usd'), 2),
+                'upcoming'  => $weekShifts->where('status', 'scheduled')->count(),
+                'completed' => $weekShifts->where('status', 'completed')->count(),
+            ],
+            'availability' => $teacher->availabilityWindows->map(fn ($w) => [
+                'id'          => $w->id,
+                'day'         => $w->day_of_week,
+                'day_name'    => TeacherAvailability::dayName($w->day_of_week),
+                'start_time'  => $w->start_time,
+                'end_time'    => $w->end_time,
+            ])->values(),
+            'time_off' => $teacher->timeOff->map(fn ($t) => [
+                'id'        => $t->id,
+                'starts_at' => $t->starts_at->format('d M Y H:i'),
+                'ends_at'   => $t->ends_at->format('d M Y H:i'),
+                'reason'    => $t->reason,
+                'status'    => $t->status,
+            ])->values(),
+            'upcoming_shifts' => $upcomingShifts->map(fn ($s) => [
+                'id'       => $s->id,
+                'title'    => $s->title,
+                'starts_at'=> $s->starts_at->format('D d M, H:i'),
+                'ends_at'  => $s->ends_at->format('H:i'),
+                'status'   => $s->status,
+                'hours'    => $s->duration_hours,
+            ])->values(),
+            'recent_shifts' => $recentShifts->map(fn ($s) => [
+                'id'            => $s->id,
+                'title'         => $s->title,
+                'starts_at'     => $s->starts_at->format('D d M, H:i'),
+                'status'        => $s->status,
+                'hours_worked'  => $s->hours_worked,
+                'duration_hours'=> $s->duration_hours,
+                'payout'        => $s->payout_amount_usd,
+            ])->values(),
+        ]);
+    }
+
+    /** Update a teacher's rate, timezone, and assignment preference. */
+    public function updateTeacher(Request $request, User $teacher)
+    {
+        $data = $request->validate([
+            'hourly_rate_usd'     => 'required|numeric|min:0|max:9999',
+            'accepts_assignments' => 'required|boolean',
+            'timezone'            => 'required|string|max:64',
+        ]);
+        $teacher->update($data);
+        return redirect()->route('admin.workforce.index', ['teacher' => $teacher->id])
+            ->with('success', "Settings for {$teacher->name} updated — rate: \${$data['hourly_rate_usd']}/hr.");
+    }
+
+    /** Update shift status / mark complete with actual hours. */
+    public function updateShift(Request $request, TeacherShift $shift)
+    {
+        $data = $request->validate([
+            'status'       => 'required|in:scheduled,in_progress,completed,missed,cancelled',
+            'hours_worked' => 'nullable|numeric|min:0|max:24',
+            'notes'        => 'nullable|string|max:1000',
+        ]);
+
+        $shift->fill([
+            'status' => $data['status'],
+            'notes'  => $data['notes'] ?? $shift->notes,
+        ]);
+
+        if ($data['status'] === 'completed') {
+            $shift->hours_worked = $data['hours_worked'] ?? $shift->duration_hours;
+            $shift->computePayout();
+        }
+
+        $shift->save();
+        return redirect()->route('admin.workforce.index', ['teacher' => $shift->teacher_id])
+            ->with('success', 'Shift updated.');
+    }
+
+    /** Add a recurring availability window for a teacher. */
+    public function storeAvailability(Request $request)
+    {
+        $data = $request->validate([
+            'teacher_id'  => 'required|exists:users,id',
+            'day_of_week' => 'required|integer|min:0|max:6',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
+        ]);
+        TeacherAvailability::create($data);
+        return redirect()->route('admin.workforce.index', ['teacher' => $data['teacher_id']])
+            ->with('success', 'Availability window added.');
+    }
+
+    /** Remove a recurring availability window. */
+    public function destroyAvailability(TeacherAvailability $availability)
+    {
+        $teacherId = $availability->teacher_id;
+        $availability->delete();
+        return redirect()->route('admin.workforce.index', ['teacher' => $teacherId])
+            ->with('success', 'Availability window removed.');
+    }
+
+    /** Add an approved time-off block for a teacher. */
+    public function storeTimeOff(Request $request)
+    {
+        $data = $request->validate([
+            'teacher_id' => 'required|exists:users,id',
+            'starts_at'  => 'required|date',
+            'ends_at'    => 'required|date|after:starts_at',
+            'reason'     => 'nullable|string|max:255',
+        ]);
+        TeacherTimeOff::create($data + [
+            'status'      => 'approved',
+            'approved_by' => $request->user()->id,
+        ]);
+        return redirect()->route('admin.workforce.index', ['teacher' => $data['teacher_id']])
+            ->with('success', 'Time off recorded.');
+    }
+
+    /** Remove a time-off block. */
+    public function destroyTimeOff(TeacherTimeOff $timeOff)
+    {
+        $teacherId = $timeOff->teacher_id;
+        $timeOff->delete();
+        return redirect()->route('admin.workforce.index', ['teacher' => $teacherId])
+            ->with('success', 'Time off removed.');
     }
 }

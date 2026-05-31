@@ -332,8 +332,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::get('workforce/rota',             [\App\Http\Controllers\Admin\WorkforceController::class, 'rota'])->name('workforce.rota');
     Route::post('workforce/auto-assign',     [\App\Http\Controllers\Admin\WorkforceController::class, 'autoAssign'])->name('workforce.auto-assign');
     Route::post('workforce/shifts',          [\App\Http\Controllers\Admin\WorkforceController::class, 'storeShift'])->name('workforce.shifts.store');
+    Route::patch('workforce/shifts/{shift}', [\App\Http\Controllers\Admin\WorkforceController::class, 'updateShift'])->name('workforce.shifts.update');
     Route::delete('workforce/shifts/{shift}',[\App\Http\Controllers\Admin\WorkforceController::class, 'destroyShift'])->name('workforce.shifts.destroy');
     Route::get('workforce/suggest',          [\App\Http\Controllers\Admin\WorkforceController::class, 'suggest'])->name('workforce.suggest');
+    Route::get('workforce/teachers/{user}',  [\App\Http\Controllers\Admin\WorkforceController::class, 'showTeacher'])->name('workforce.teachers.show');
+    Route::patch('workforce/teachers/{user}',[\App\Http\Controllers\Admin\WorkforceController::class, 'updateTeacher'])->name('workforce.teachers.update');
+    Route::post('workforce/availability',    [\App\Http\Controllers\Admin\WorkforceController::class, 'storeAvailability'])->name('workforce.availability.store');
+    Route::delete('workforce/availability/{availability}', [\App\Http\Controllers\Admin\WorkforceController::class, 'destroyAvailability'])->name('workforce.availability.destroy');
+    Route::post('workforce/time-off',        [\App\Http\Controllers\Admin\WorkforceController::class, 'storeTimeOff'])->name('workforce.time-off.store');
+    Route::delete('workforce/time-off/{timeOff}', [\App\Http\Controllers\Admin\WorkforceController::class, 'destroyTimeOff'])->name('workforce.time-off.destroy');
 
     // Teacher Policies, Contracts, Contingency Matrix
     Route::get('policies',                                 [\App\Http\Controllers\Admin\PolicyController::class, 'index'])->name('policies.index');
