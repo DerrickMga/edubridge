@@ -39,6 +39,7 @@ class PaynowService
             'reference'      => 'EB-'.$payment->id,
             'amount'         => number_format($payment->amount, 2, '.', ''),
             'additionalinfo' => $course->title,
+            'authemail'      => 'omari@kmgvitallinks.co.uk',
             'returnurl'      => $this->returnUrl,
             'resulturl'      => $this->resultUrl,
             'status'         => 'Message',

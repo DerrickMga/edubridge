@@ -117,7 +117,7 @@
                     </div>
 
                     <p class="section-label pt-1">Mobile Money (ZWG)</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="form-group">
                             <label class="form-label text-xs">EcoCash Number</label>
                             <input type="text" name="ecocash_number" value="{{ old('ecocash_number', $verification?->ecocash_number) }}" placeholder="0771234567" class="form-input">
@@ -125,10 +125,6 @@
                         <div class="form-group">
                             <label class="form-label text-xs">InnBucks Number</label>
                             <input type="text" name="innbucks_number" value="{{ old('innbucks_number', $verification?->innbucks_number) }}" placeholder="0781234567" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label text-xs">Paynow Email</label>
-                            <input type="email" name="paynow_email" value="{{ old('paynow_email', $verification?->paynow_email) }}" placeholder="you@email.com" class="form-input">
                         </div>
                     </div>
                 </div>

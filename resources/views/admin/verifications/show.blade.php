@@ -77,7 +77,6 @@
                     ['Branch Code',     $verification->bank_branch_code],
                     ['EcoCash',         $verification->ecocash_number],
                     ['InnBucks',        $verification->innbucks_number],
-                    ['Paynow Email',    $verification->paynow_email],
                 ] as [$label, $val])
                 @if($val)
                 <div><span class="text-slate-400">{{ $label }}</span><p class="font-medium font-mono">{{ $val }}</p></div>
