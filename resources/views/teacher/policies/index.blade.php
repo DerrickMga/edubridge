@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', 'Policies & Contract')
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">Policies & Contract</x-slot>
 <div class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -68,4 +65,4 @@
         </ul>
     </div>
 </div>
-@endsection
+</x-app-layout>

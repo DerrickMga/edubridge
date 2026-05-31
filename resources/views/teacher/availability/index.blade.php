@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', 'My Availability')
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">My Availability</x-slot>
 <div class="space-y-6 max-w-4xl">
 
     <div>
@@ -105,4 +102,4 @@
     </div>
 
 </div>
-@endsection
+</x-app-layout>

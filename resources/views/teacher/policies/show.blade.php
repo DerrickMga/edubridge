@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', $policy->title)
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">{{ $policy->title }}</x-slot>
 <div class="max-w-3xl space-y-5">
     <div>
         <p class="text-xs text-slate-400 uppercase tracking-wide">{{ str_replace('_', ' ', $policy->category) }} · v{{ $policy->version }}</p>
@@ -36,4 +33,4 @@
 
     <a href="{{ route('teacher.policies.index') }}" class="text-sm text-slate-500 hover:underline">← Back to policies</a>
 </div>
-@endsection
+</x-app-layout>
