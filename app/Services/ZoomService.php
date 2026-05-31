@@ -200,5 +200,68 @@ class ZoomService
 
         return $response->json('participants', []);
     }
+
+    /**
+     * Get all cloud recording files for a meeting.
+     *
+     * Returns an array with keys:
+     *   uuid, meeting_id, topic, start_time, duration (minutes),
+     *   total_size (bytes), recording_files (array of file records)
+     *
+     * Each recording_file record contains:
+     *   id, file_type (MP4|M4A|TIMELINE|TRANSCRIPT|CHAT|CC|CSV),
+     *   file_size, play_url, download_url, status, recording_start, recording_end
+     */
+    public function getRecordingFiles(string $meetingId): array
+    {
+        $response = Http::withToken($this->accessToken())
+            ->get("{$this->baseUrl}/meetings/{$meetingId}/recordings");
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return [
+            'uuid'            => $response->json('uuid'),
+            'meeting_id'      => $response->json('id'),
+            'topic'           => $response->json('topic'),
+            'start_time'      => $response->json('start_time'),
+            'duration'        => $response->json('duration'),   // minutes
+            'total_size'      => $response->json('total_size'), // bytes
+            'recording_files' => $response->json('recording_files', []),
+        ];
+    }
+
+    /**
+     * Get scheduled or past meeting details.
+     *
+     * Returns the raw Zoom API response including: id, uuid, topic,
+     * start_time, duration, status, created_at, settings, etc.
+     * Returns an empty array if the meeting is not found.
+     */
+    public function getMeetingDetails(string $meetingId): array
+    {
+        $response = Http::withToken($this->accessToken())
+            ->get("{$this->baseUrl}/meetings/{$meetingId}");
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Delete a cloud recording for a meeting.
+     * $action: 'trash' (default, recoverable) or 'delete' (permanent).
+     */
+    public function deleteCloudRecording(string $meetingId, string $action = 'trash'): void
+    {
+        Http::withToken($this->accessToken())
+            ->delete("{$this->baseUrl}/meetings/{$meetingId}/recordings", [
+                'action' => $action,
+            ]);
+        // Non-fatal — ignore errors
+    }
 }
 

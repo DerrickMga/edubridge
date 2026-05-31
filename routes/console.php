@@ -3,6 +3,7 @@
 use App\Jobs\ProcessSessionAiReport;
 use App\Models\Assignment;
 use App\Models\LiveSession;
+use App\Console\Commands\SyncZoomRecordings;
 use App\Notifications\AssignmentDueNotification;
 use App\Notifications\LiveSessionReminderNotification;
 use Illuminate\Foundation\Inspiring;
@@ -77,4 +78,18 @@ Schedule::call(function () {
             }
         });
 })->everyFiveMinutes()->name('session-ai-reports')->withoutOverlapping();
+
+/*
+|--------------------------------------------------------------------------
+| Zoom Recording Sync — runs every 30 min
+| Polls Zoom API for completed cloud recordings for any Zoom session that
+| ended > 15 minutes ago but has no recording linked yet.
+| (Complement to the real-time webhook — catches anything the webhook missed.)
+|--------------------------------------------------------------------------
+*/
+Schedule::command(SyncZoomRecordings::class)
+    ->everyThirtyMinutes()
+    ->name('zoom-sync-recordings')
+    ->withoutOverlapping()
+    ->runInBackground();
 

@@ -36,6 +36,7 @@ use App\Http\Controllers\Student\TransactionController as StudentTransactionCont
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ZoomWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'))->name('home');
@@ -157,6 +158,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     // Recordings (nested under live sessions)
     Route::get('live-sessions/{liveSession}/recordings',                        [RecordingController::class, 'index'])->name('recordings.index');
     Route::post('live-sessions/{liveSession}/recordings',                       [RecordingController::class, 'store'])->name('recordings.store');
+    Route::post('live-sessions/{liveSession}/recordings/sync-zoom',             [RecordingController::class, 'syncFromZoom'])->name('recordings.sync-zoom');
     Route::delete('live-sessions/{liveSession}/recordings/{recording}',         [RecordingController::class, 'destroy'])->name('recordings.destroy');
 
     // Content Library (resources)
@@ -277,4 +279,9 @@ Route::prefix('payments')->name('payments.')->middleware(['auth', 'throttle:paym
 // Payment webhooks (no auth, signature-verified inside controllers)
 Route::post('payments/webhook/{provider}', [PaymentController::class, 'webhook'])
     ->name('payments.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// Zoom webhook (no auth, HMAC-verified inside controller)
+Route::post('webhooks/zoom', [ZoomWebhookController::class, 'handle'])
+    ->name('webhooks.zoom')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

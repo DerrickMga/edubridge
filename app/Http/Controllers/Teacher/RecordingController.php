@@ -3,12 +3,16 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\{LiveSession, Recording};
-use App\Services\RecordingService;
+use App\Services\{RecordingService, ZoomService};
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RecordingController extends Controller
 {
-    public function __construct(private readonly RecordingService $service) {}
+    public function __construct(
+        private readonly RecordingService $service,
+        private readonly ZoomService $zoom,
+    ) {}
 
     public function index(LiveSession $liveSession)
     {
@@ -41,6 +45,59 @@ class RecordingController extends Controller
         }
 
         return back()->with('success', 'Recording added: '.$recording->title);
+    }
+
+    /**
+     * Manually trigger a Zoom cloud recording sync for one session.
+     * Shows up as a "Sync from Zoom" button on the recordings index page.
+     */
+    public function syncFromZoom(LiveSession $liveSession)
+    {
+        abort_if($liveSession->teacher_id !== auth()->id(), 403);
+        abort_if(! in_array($liveSession->provider, ['Zoom', 'zoom']), 422, 'Session is not a Zoom session.');
+        abort_if(! $liveSession->meeting_id, 422, 'No Zoom meeting ID linked to this session.');
+
+        $data  = $this->zoom->getRecordingFiles($liveSession->meeting_id);
+        $files = $data['recording_files'] ?? [];
+
+        $created = 0;
+        foreach ($files as $file) {
+            if (($file['status'] ?? '') !== 'completed') continue;
+            if (($file['file_type'] ?? '') !== 'MP4') continue;
+
+            $url = $file['play_url'] ?? $file['download_url'] ?? null;
+            if (! $url) continue;
+            if (Recording::where('external_url', $url)->exists()) continue;
+
+            $durationSec = 0;
+            if (! empty($file['recording_start']) && ! empty($file['recording_end'])) {
+                $durationSec = (int) Carbon::parse($file['recording_end'])
+                    ->diffInSeconds(Carbon::parse($file['recording_start']));
+            }
+
+            Recording::create([
+                'live_session_id' => $liveSession->id,
+                'course_id'       => $liveSession->course_id,
+                'teacher_id'      => $liveSession->teacher_id,
+                'title'           => $liveSession->title . ' — Recording',
+                'external_url'    => $url,
+                'source'          => 'zoom',
+                'duration_seconds'=> $durationSec,
+                'file_size_bytes' => $file['file_size'] ?? 0,
+                'status'          => 'available',
+                'is_public'       => true,
+            ]);
+
+            $created++;
+        }
+
+        if ($created === 0 && empty($files)) {
+            return back()->with('warning', 'No Zoom cloud recordings found yet. Recordings usually appear 15–30 minutes after the session ends.');
+        }
+
+        return back()->with('success', $created > 0
+            ? "{$created} recording(s) synced from Zoom."
+            : 'All recordings were already synced — nothing new to add.');
     }
 
     public function destroy(LiveSession $liveSession, Recording $recording)
