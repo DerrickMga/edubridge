@@ -177,8 +177,9 @@
             </p>
             <p class="text-xs text-slate-400 mb-3">Let students book 1-on-1 sessions with you.</p>
             <div class="flex gap-2">
-                <input type="url" x-model="url" @input.debounce.500ms="save()"
+                <input type="url" id="calendly_url" name="calendly_url" x-model="url" @input.debounce.500ms="save()"
                        placeholder="https://calendly.com/your-name/session"
+                       autocomplete="url"
                        class="form-input text-sm flex-1 min-w-0" />
                 <button @click="open()" :disabled="!url"
                         class="flex-shrink-0 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors">
