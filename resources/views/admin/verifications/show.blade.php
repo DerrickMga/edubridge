@@ -147,5 +147,103 @@
         </div>
         @endif
 
+        {{-- AI Document & Face Check --}}
+        <div class="card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="section-title">AI Document & Face Check</h2>
+                @if($verification->ai_checked_at)
+                    <span class="text-xs text-slate-400">Checked {{ $verification->ai_checked_at->format('d M Y H:i') }} UTC</span>
+                @endif
+            </div>
+
+            @if(! $verification->ai_check_result)
+                <p class="text-sm text-slate-400">No AI analysis yet. Analysis runs automatically when documents are submitted.</p>
+            @elseif(($verification->ai_check_result['status'] ?? '') === 'error')
+                <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                    <div>
+                        <p class="font-medium">Analysis failed</p>
+                        <p class="mt-0.5">{{ $verification->ai_check_result['reason'] ?? $verification->ai_check_result['error'] ?? 'Unknown error' }}</p>
+                    </div>
+                </div>
+            @elseif(($verification->ai_check_result['status'] ?? '') === 'skipped')
+                <p class="text-sm text-amber-600">⚠ {{ $verification->ai_check_result['reason'] ?? 'Analysis skipped.' }}</p>
+            @else
+                @php $ai = $verification->ai_check_result; @endphp
+
+                {{-- Face match verdict --}}
+                <div class="flex items-center gap-4 p-4 rounded-xl border
+                    {{ $ai['faces_match'] === true ? 'bg-emerald-50 border-emerald-200' : ($ai['faces_match'] === false ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200') }}">
+                    <div class="text-3xl">
+                        @if($ai['faces_match'] === true) ✅
+                        @elseif($ai['faces_match'] === false) ❌
+                        @else 🔍
+                        @endif
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm
+                            {{ $ai['faces_match'] === true ? 'text-emerald-800' : ($ai['faces_match'] === false ? 'text-red-800' : 'text-slate-700') }}">
+                            @if($ai['faces_match'] === true) Faces match
+                            @elseif($ai['faces_match'] === false) Faces do NOT match
+                            @else Face match inconclusive (no selfie provided)
+                            @endif
+                        </p>
+                        @if(isset($ai['confidence']) && $ai['confidence'] !== null)
+                            <p class="text-xs text-slate-500 mt-0.5">Confidence: {{ $ai['confidence'] }}%</p>
+                        @endif
+                        @if(isset($ai['summary']))
+                            <p class="text-sm text-slate-600 mt-1">{{ $ai['summary'] }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Document details grid --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    @foreach([
+                        ['Document type',     $ai['document_type'] ?? null],
+                        ['Name on ID',        $ai['name_on_id'] ?? null],
+                        ['ID number on doc',  $ai['id_number_on_id'] ?? null],
+                    ] as [$label, $val])
+                    <div class="bg-slate-50 rounded-lg p-3">
+                        <p class="text-xs text-slate-400 mb-0.5">{{ $label }}</p>
+                        <p class="font-medium text-slate-700">{{ $val ?? '—' }}</p>
+                    </div>
+                    @endforeach
+
+                    @foreach([
+                        ['Name matches submitted',   $ai['name_matches_submitted'] ?? null],
+                        ['ID no. matches submitted', $ai['id_number_matches_submitted'] ?? null],
+                        ['Face on ID detected',      $ai['face_on_id_detected'] ?? null],
+                        ['Face in selfie detected',  $ai['face_on_selfie_detected'] ?? null],
+                    ] as [$label, $val])
+                    <div class="bg-slate-50 rounded-lg p-3">
+                        <p class="text-xs text-slate-400 mb-0.5">{{ $label }}</p>
+                        @if($val === true)
+                            <span class="text-emerald-700 font-medium">✓ Yes</span>
+                        @elseif($val === false)
+                            <span class="text-red-600 font-medium">✗ No</span>
+                        @else
+                            <span class="text-slate-400">—</span>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Flags --}}
+                @if(! empty($ai['flags']))
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">AI Flags</p>
+                    <ul class="space-y-1">
+                        @foreach($ai['flags'] as $flag)
+                        <li class="flex items-start gap-2 text-sm text-amber-800">
+                            <span class="mt-0.5 text-amber-500">⚠</span> {{ $flag }}
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+            @endif
+        </div>
+
     </div>
 </x-app-layout>

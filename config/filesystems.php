@@ -38,6 +38,15 @@ return [
             'report' => false,
         ],
 
+        // Alias used by VerificationController and document uploads
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

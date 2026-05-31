@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\AnalyzeVerificationDocuments;
 use App\Models\TeacherVerification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,9 +57,13 @@ class VerificationController extends Controller
 
         if ($user->verification) {
             $user->verification->update($payload);
+            $record = $user->verification->fresh();
         } else {
-            TeacherVerification::create($payload);
+            $record = TeacherVerification::create($payload);
         }
+
+        // Run AI document/face analysis in the background (sync queue runs inline)
+        AnalyzeVerificationDocuments::dispatch($record->id);
 
         return redirect()->route('teacher.verification.index')
             ->with('success', 'Verification documents submitted. We\'ll review within 1–2 business days.');

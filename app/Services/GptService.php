@@ -58,6 +58,38 @@ class GptService
     }
 
     /**
+     * Send a pre-built messages array directly to GPT-4o (supports vision content blocks).
+     *
+     * @param  array  $messages   Full messages array, each item being ['role' => ..., 'content' => ...]
+     */
+    public function chatWithMessages(array $messages, int $maxTokens = 2000): string
+    {
+        if (empty($this->apiKey)) {
+            return json_encode(['status' => 'error', 'reason' => 'OpenAI API key not configured.']);
+        }
+
+        $response = Http::withToken($this->apiKey)
+            ->timeout(60)
+            ->post($this->baseUrl . '/chat/completions', [
+                'model'      => 'gpt-4o',
+                'messages'   => $messages,
+                'max_tokens' => $maxTokens,
+            ]);
+
+        if ($response->failed()) {
+            Log::error('GptService chatWithMessages: OpenAI failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 500),
+            ]);
+            throw new RuntimeException(
+                'OpenAI request failed (' . $response->status() . '): ' . $response->body()
+            );
+        }
+
+        return (string) data_get($response->json(), 'choices.0.message.content', '');
+    }
+
+    /**
      * Analyse an image using GPT-4o vision.
      *
      * @param  string  $base64     Raw base64 of the image (no data-URI prefix)

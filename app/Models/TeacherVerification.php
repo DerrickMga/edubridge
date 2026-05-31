@@ -14,11 +14,14 @@ class TeacherVerification extends Model
         'bank_name', 'bank_account_number', 'bank_branch_code',
         'ecocash_number', 'innbucks_number', 'paynow_email',
         'admin_notes', 'reviewed_by', 'submitted_at', 'reviewed_at',
+        'ai_check_result', 'ai_checked_at',
     ];
 
     protected $casts = [
-        'submitted_at' => 'datetime',
-        'reviewed_at'  => 'datetime',
+        'submitted_at'    => 'datetime',
+        'reviewed_at'     => 'datetime',
+        'ai_checked_at'   => 'datetime',
+        'ai_check_result' => 'array',
     ];
 
     const STATUS_PENDING     = 'pending';
