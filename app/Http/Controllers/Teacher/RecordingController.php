@@ -2,8 +2,9 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\UploadRecordingToYouTubeJob;
 use App\Models\{LiveSession, Recording};
-use App\Services\{RecordingService, ZoomService};
+use App\Services\{RecordingService, YouTubeService, ZoomService};
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -106,5 +107,37 @@ class RecordingController extends Controller
         abort_if($recording->live_session_id !== $liveSession->id, 404);
         $this->service->delete($recording);
         return back()->with('success', 'Recording deleted.');
+    }
+
+    public function uploadToYouTube(Request $request, LiveSession $liveSession, Recording $recording, YouTubeService $youtube)
+    {
+        abort_if($liveSession->teacher_id !== auth()->id(), 403);
+        abort_if($recording->live_session_id !== $liveSession->id, 404);
+
+        if ($recording->hasYouTube()) {
+            return back()->with('warning', 'This recording is already on YouTube.');
+        }
+
+        if (! $youtube->tokenForUser($request->user())) {
+            return back()->withErrors(['youtube' => 'Connect a YouTube channel first.']);
+        }
+
+        $validated = $request->validate([
+            'lesson_id' => ['nullable', 'integer', 'exists:lessons,id'],
+            'privacy'   => ['nullable', 'in:public,unlisted,private'],
+        ]);
+
+        $updates = ['youtube_status' => 'queued', 'youtube_error' => null];
+        if (! empty($validated['lesson_id'])) {
+            $updates['lesson_id'] = $validated['lesson_id'];
+        }
+        if (! empty($validated['privacy'])) {
+            $updates['youtube_privacy'] = $validated['privacy'];
+        }
+        $recording->update($updates);
+
+        UploadRecordingToYouTubeJob::dispatch($recording->id);
+
+        return back()->with('success', 'Upload queued — the recording will appear on YouTube once processing finishes.');
     }
 }

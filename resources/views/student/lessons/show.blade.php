@@ -1,6 +1,21 @@
 <x-app-layout>
     <x-slot name="title">{{ $lesson->title }}</x-slot>
 
+    @php
+        // Recorded sessions deep-linked to this lesson (or course-wide if none).
+        $sessionRecordings = \App\Models\Recording::query()
+            ->where('course_id', $lesson->course_id)
+            ->where(function ($q) use ($lesson) {
+                $q->where('lesson_id', $lesson->id)
+                  ->orWhereNotNull('youtube_video_id');
+            })
+            ->whereNotNull('youtube_video_id')
+            ->where('is_public', true)
+            ->orderByRaw('CASE WHEN lesson_id = ? THEN 0 ELSE 1 END', [$lesson->id])
+            ->latest()
+            ->get();
+    @endphp
+
     <div class="grid lg:grid-cols-[1fr_320px] gap-6">
 
         {{-- Video & content --}}
@@ -67,6 +82,42 @@
                 <p class="mt-4 text-slate-600 text-sm leading-relaxed">{{ $lesson->description }}</p>
                 @endif
             </div>
+
+            {{-- Recorded live sessions (deep-linked YouTube replays) --}}
+            @if($sessionRecordings->isNotEmpty())
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
+                    <span class="text-red-600 font-bold text-xs">YouTube</span>
+                    <h3 class="font-semibold text-slate-800 text-sm">Recorded Live Sessions</h3>
+                    <span class="text-xs text-slate-400">({{ $sessionRecordings->count() }})</span>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    @foreach($sessionRecordings as $rec)
+                    <details class="group">
+                        <summary class="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-slate-50">
+                            <span class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-xs font-bold">▶</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900 truncate">{{ $rec->title }}</p>
+                                <p class="text-xs text-slate-400">
+                                    {{ optional($rec->liveSession)->scheduled_at?->format('d M Y') ?? $rec->created_at->format('d M Y') }}
+                                    @if($rec->duration_seconds > 0) · {{ $rec->duration_formatted }} @endif
+                                </p>
+                            </div>
+                            <a href="https://youtu.be/{{ $rec->youtube_video_id }}" target="_blank" rel="noopener" class="text-xs text-slate-500 hover:text-slate-700">Open ↗</a>
+                        </summary>
+                        <div class="aspect-video bg-slate-900">
+                            <iframe loading="lazy"
+                                    src="https://www.youtube.com/embed/{{ $rec->youtube_video_id }}?rel=0&modestbranding=1"
+                                    class="w-full h-full"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                        </div>
+                    </details>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             {{-- Lesson Resources --}}
             @php $allResources = $lessonResources->merge($courseResources) @endphp

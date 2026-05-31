@@ -166,7 +166,13 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('live-sessions/{liveSession}/recordings',                        [RecordingController::class, 'index'])->name('recordings.index');
     Route::post('live-sessions/{liveSession}/recordings',                       [RecordingController::class, 'store'])->name('recordings.store');
     Route::post('live-sessions/{liveSession}/recordings/sync-zoom',             [RecordingController::class, 'syncFromZoom'])->name('recordings.sync-zoom');
+    Route::post('live-sessions/{liveSession}/recordings/{recording}/youtube',   [RecordingController::class, 'uploadToYouTube'])->name('recordings.upload-youtube');
     Route::delete('live-sessions/{liveSession}/recordings/{recording}',         [RecordingController::class, 'destroy'])->name('recordings.destroy');
+
+    // YouTube channel OAuth
+    Route::get('youtube/connect',     [\App\Http\Controllers\Teacher\YouTubeAuthController::class, 'redirect'])->name('youtube.connect');
+    Route::get('youtube/callback',    [\App\Http\Controllers\Teacher\YouTubeAuthController::class, 'callback'])->name('youtube.callback');
+    Route::delete('youtube/disconnect',[\App\Http\Controllers\Teacher\YouTubeAuthController::class, 'disconnect'])->name('youtube.disconnect');
 
     // Content Library (resources)
     Route::get('courses/{course}/resources',               [ResourceController::class, 'index'])->name('resources.index');

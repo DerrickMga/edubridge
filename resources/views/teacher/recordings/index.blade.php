@@ -1,6 +1,11 @@
 <x-app-layout>
     <x-slot name="title">Recordings — {{ $liveSession->title }}</x-slot>
 
+    @php
+        $youtubeToken = auth()->user()->googleToken ?? \App\Models\GoogleToken::where('user_id', auth()->id())->first();
+        $courseLessons = $liveSession->course?->lessons()->orderBy('order')->get(['id','title']) ?? collect();
+    @endphp
+
     <div class="max-w-3xl">
         <div class="page-header flex items-center gap-3 mb-6">
             <a href="{{ route('teacher.dashboard') }}"
@@ -34,6 +39,25 @@
             {{ session('warning') }}
         </div>
         @endif
+
+        {{-- YouTube channel connect banner --}}
+        <div class="mb-5 rounded-xl border {{ $youtubeToken ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white' }} px-4 py-3 flex items-center gap-3">
+            <span class="text-red-600 font-bold text-xs px-2 py-1 rounded bg-red-50 border border-red-100">YouTube</span>
+            @if($youtubeToken)
+                <div class="flex-1 text-sm text-slate-700">
+                    Connected to <strong>{{ $youtubeToken->channel_title ?: 'your channel' }}</strong>. Recordings can be uploaded directly.
+                </div>
+                <form method="POST" action="{{ route('teacher.youtube.disconnect') }}" onsubmit="return confirm('Disconnect YouTube?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-secondary btn-sm">Disconnect</button>
+                </form>
+            @else
+                <div class="flex-1 text-sm text-slate-700">
+                    Connect a YouTube channel to upload recorded lessons so students can replay them inside their courses.
+                </div>
+                <a href="{{ route('teacher.youtube.connect') }}" class="btn-primary btn-sm">Connect YouTube</a>
+            @endif
+        </div>
 
         {{-- Add Recording Form --}}
         <div class="card p-6 mb-6" x-data="{ sourceType: 'external' }">
@@ -122,6 +146,33 @@
                         View
                     </a>
                     @endif
+
+                    @if($youtubeToken && ! $recording->hasYouTube() && $recording->youtube_status !== 'uploading' && $recording->youtube_status !== 'queued')
+                        <form action="{{ route('teacher.recordings.upload-youtube', [$liveSession, $recording]) }}" method="POST" class="flex items-center gap-1">
+                            @csrf
+                            @if($courseLessons->isNotEmpty())
+                            <select name="lesson_id" class="form-select text-xs py-1" title="Attach to lesson (optional)">
+                                <option value="">No lesson</option>
+                                @foreach($courseLessons as $l)
+                                    <option value="{{ $l->id }}">{{ \Illuminate\Support\Str::limit($l->title, 30) }}</option>
+                                @endforeach
+                            </select>
+                            @endif
+                            <select name="privacy" class="form-select text-xs py-1">
+                                <option value="unlisted">Unlisted</option>
+                                <option value="private">Private</option>
+                                <option value="public">Public</option>
+                            </select>
+                            <button type="submit" class="btn-primary btn-sm" title="Upload to YouTube">↗ YouTube</button>
+                        </form>
+                    @elseif($recording->youtube_status === 'queued' || $recording->youtube_status === 'uploading')
+                        <span class="text-xs text-slate-500 px-2">⏳ {{ ucfirst($recording->youtube_status) }}…</span>
+                    @elseif($recording->hasYouTube())
+                        <a href="{{ $recording->youtube_url }}" target="_blank" rel="noopener" class="text-xs px-2 py-1 rounded bg-red-50 text-red-700 border border-red-100">On YouTube ↗</a>
+                    @elseif($recording->youtube_status === 'failed')
+                        <span class="text-xs text-red-600 px-2" title="{{ $recording->youtube_error }}">Upload failed</span>
+                    @endif
+
                     <form action="{{ route('teacher.recordings.destroy', [$liveSession, $recording]) }}"
                           method="POST" onsubmit="return confirm('Delete this recording?')">
                         @csrf @method('DELETE')

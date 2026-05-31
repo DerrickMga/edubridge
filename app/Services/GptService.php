@@ -13,9 +13,9 @@ class GptService
 
     public function __construct()
     {
-        $this->apiKey  = config('services.openai.api_key', '');
-        $this->model   = config('services.openai.companion_model', 'gpt-4o');
-        $this->baseUrl = config('services.openai.base_url', 'https://api.openai.com/v1');
+        $this->apiKey  = (string) config('services.openai.api_key', '');
+        $this->model   = (string) config('services.openai.companion_model', 'gpt-4o');
+        $this->baseUrl = (string) config('services.openai.base_url', 'https://api.openai.com/v1');
     }
 
     /**
