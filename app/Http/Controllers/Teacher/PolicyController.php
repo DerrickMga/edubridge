@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TeacherContract;
 use App\Models\TeacherPolicy;
 use App\Services\PolicyService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PolicyController extends Controller
@@ -85,6 +86,26 @@ class PolicyController extends Controller
         $this->policies->signContract($contract, $data['typed_name'], $request->ip(), $request->userAgent());
 
         return redirect()->route('teacher.policies.contract')
-            ->with('success', 'Contract signed. A signed copy has been recorded against your account.');
+            ->with('success', 'Contract signed. A signed copy has been sent to your email.');
+    }
+
+    /** Download a signed contract as a PDF. */
+    public function downloadPdf(Request $request, TeacherContract $contract)
+    {
+        abort_if($contract->teacher_id !== $request->user()->id, 403);
+        abort_unless($contract->status === 'signed', 404, 'Only signed contracts can be downloaded.');
+
+        $policyIds = collect($contract->terms_snapshot ?? [])->pluck('policy_id')->filter()->values();
+        $policies  = TeacherPolicy::whereIn('id', $policyIds)->orderBy('category')->orderBy('slug')->get();
+
+        $ref = 'EDUBR-CONTRACT-' . str_pad($contract->id, 6, '0', STR_PAD_LEFT) . '-V' . $contract->version;
+
+        $pdf = Pdf::loadView('pdf.contract', compact('contract', 'policies'))
+            ->setPaper('a4', 'portrait')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false)
+            ->setOption('defaultFont', 'DejaVu Sans');
+
+        return $pdf->download("{$ref}.pdf");
     }
 }

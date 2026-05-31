@@ -259,11 +259,12 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('shifts',                           [\App\Http\Controllers\Teacher\ShiftController::class, 'index'])->name('shifts.index');
 
     // Policy library + contract
-    Route::get('policies',                         [\App\Http\Controllers\Teacher\PolicyController::class, 'index'])->name('policies.index');
-    Route::get('policies/contract',                [\App\Http\Controllers\Teacher\PolicyController::class, 'contract'])->name('policies.contract');
+    Route::get('policies',                           [\App\Http\Controllers\Teacher\PolicyController::class, 'index'])->name('policies.index');
+    Route::get('policies/contract',                  [\App\Http\Controllers\Teacher\PolicyController::class, 'contract'])->name('policies.contract');
     Route::post('policies/contract/{contract}/sign', [\App\Http\Controllers\Teacher\PolicyController::class, 'sign'])->name('policies.contract.sign');
-    Route::get('policies/{policy}',                [\App\Http\Controllers\Teacher\PolicyController::class, 'show'])->name('policies.show');
-    Route::post('policies/{policy}/ack',           [\App\Http\Controllers\Teacher\PolicyController::class, 'acknowledge'])->name('policies.acknowledge');
+    Route::get('policies/contract/{contract}/pdf',   [\App\Http\Controllers\Teacher\PolicyController::class, 'downloadPdf'])->name('policies.contract.pdf');
+    Route::get('policies/{policy}',                  [\App\Http\Controllers\Teacher\PolicyController::class, 'show'])->name('policies.show');
+    Route::post('policies/{policy}/ack',             [\App\Http\Controllers\Teacher\PolicyController::class, 'acknowledge'])->name('policies.acknowledge');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {

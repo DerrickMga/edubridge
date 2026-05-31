@@ -64,6 +64,15 @@
             @if($contract->expires_at)
                 <p class="text-xs text-slate-500 mt-1">Expires {{ $contract->expires_at->format('d M Y') }}.</p>
             @endif
+            <div class="mt-3">
+                <a href="{{ route('teacher.policies.contract.pdf', $contract) }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3M3 17v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3M3 17H1m2 0h18m2 0h-2"/>
+                    </svg>
+                    Download Signed PDF
+                </a>
+            </div>
         </div>
     @elseif($contract->status === 'pending')
         @if($outstanding->isNotEmpty())

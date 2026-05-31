@@ -6,6 +6,7 @@ use App\Models\TeacherContract;
 use App\Models\TeacherPolicy;
 use App\Models\TeacherPolicyAcknowledgement;
 use App\Models\User;
+use App\Notifications\ContractSignedNotification;
 use Illuminate\Support\Facades\DB;
 
 class PolicyService
@@ -89,7 +90,17 @@ class PolicyService
             }
         });
 
-        return $contract->fresh();
+        $fresh = $contract->fresh();
+
+        // Send signed-contract email with PDF attached.
+        try {
+            $fresh->teacher->notify(new ContractSignedNotification($fresh));
+        } catch (\Throwable $e) {
+            // Non-fatal: log but don't break the signing flow.
+            logger()->error('ContractSignedNotification failed: ' . $e->getMessage());
+        }
+
+        return $fresh;
     }
 
     public function acknowledge(?User $teacher, int $policyId, int $version, ?string $ip, ?string $userAgent): void
