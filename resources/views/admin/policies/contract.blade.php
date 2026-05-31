@@ -48,9 +48,17 @@
         <form method="POST" action="{{ route('admin.policies.contract.issue', $teacher) }}" class="card p-5 space-y-3">
             @csrf
             <h2 class="font-semibold text-slate-800 text-sm">Issue new contract</h2>
+            @if(! $teacher->hourly_rate_usd)
+            <div class="flex items-center gap-2 p-2 text-xs bg-amber-50 border border-amber-200 rounded-lg text-amber-700">
+                ⚠ This teacher has no rate set — you must enter one below before issuing.
+            </div>
+            @endif
             <div class="grid grid-cols-2 gap-2 text-sm">
-                <label><span class="block text-xs text-slate-500">Rate USD/hr</span>
-                    <input name="rate_usd" type="number" step="0.01" min="0" value="{{ $teacher->hourly_rate_usd }}" class="w-full px-2 py-1.5 rounded border border-slate-200">
+                <label><span class="block text-xs text-slate-500">Rate USD/hr <span class="text-red-500">*</span></span>
+                    <input name="rate_usd" type="number" step="0.01" min="0.01" required
+                           value="{{ $teacher->hourly_rate_usd ?: '' }}"
+                           placeholder="e.g. 20.00"
+                           class="w-full px-2 py-1.5 rounded border border-slate-200">
                 </label>
                 <label><span class="block text-xs text-slate-500">Term (months)</span>
                     <input name="term_months" type="number" min="1" max="60" value="12" class="w-full px-2 py-1.5 rounded border border-slate-200">

@@ -86,7 +86,7 @@ class PolicyController extends Controller
     public function issueContract(Request $request, User $teacher)
     {
         $data = $request->validate([
-            'rate_usd'       => 'nullable|numeric|min:0',
+            'rate_usd'       => 'required|numeric|min:0.01',
             'payment_terms'  => 'nullable|string|max:80',
             'term_months'    => 'nullable|integer|min:1|max:60',
             'exclusivity'    => ['nullable', Rule::in(['exclusive', 'non_exclusive'])],

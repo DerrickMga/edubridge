@@ -38,8 +38,8 @@ class SessionLogController extends Controller
                 'submitted_at'            => now(),
             ]);
 
-            // Auto-create payment item
-            $rate  = $request->user()->hourly_rate_usd ?? 15.00;
+            // Auto-create payment item — rate is set by admin per teacher, no hardcoded fallback
+            $rate  = (float) $request->user()->hourly_rate_usd;
             $hours = round($data['actual_duration_minutes'] / 60, 2);
             $total = round($hours * $rate, 2);
 
