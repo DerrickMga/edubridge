@@ -19,6 +19,9 @@ class LessonController extends Controller
         $prev    = $idx > 0 ? $lessons[$idx - 1] : null;
         $next    = ($idx !== false && $idx < $lessons->count() - 1) ? $lessons[$idx + 1] : null;
 
-        return view('student.lessons.show', compact('lesson', 'course', 'lessons', 'prev', 'next'));
+        $lessonResources = $lesson->resources()->get();
+        $courseResources = $course->resources()->whereNull('lesson_id')->get();
+
+        return view('student.lessons.show', compact('lesson', 'course', 'lessons', 'prev', 'next', 'lessonResources', 'courseResources'));
     }
 }

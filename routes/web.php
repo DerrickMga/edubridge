@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\SessionReportController as AdminSessionReportCont
 use App\Http\Controllers\Admin\TeacherPaymentController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Teacher\ResourceController;
+use App\Http\Controllers\Student\ResourceController as StudentResourceController;
 use App\Http\Controllers\Teacher\AiToolsController;
 use App\Http\Controllers\Teacher\VerificationController as TeacherVerificationController;
 use App\Http\Controllers\Teacher\SettlementController as TeacherSettlementController;
@@ -122,6 +123,10 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
 
     // Transaction history
     Route::get('transactions', [StudentTransactionController::class, 'index'])->name('transactions.index');
+
+    // Course resources (past papers, PDFs, links)
+    Route::get('courses/{course}/resources', [StudentResourceController::class, 'index'])->name('courses.resources');
+    Route::get('courses/{course}/resources/{resource}/download', [StudentResourceController::class, 'download'])->name('resources.download');
 
     // AI Companion (AI rate limit applied to generative POST endpoints)
     Route::get('companion',                      [CompanionController::class, 'index'])->name('companion.index');

@@ -68,6 +68,37 @@
                 @endif
             </div>
 
+            {{-- Lesson Resources --}}
+            @php $allResources = $lessonResources->merge($courseResources) @endphp
+            @if($allResources->isNotEmpty())
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25"/>
+                        </svg>
+                        <h3 class="font-semibold text-slate-800 text-sm">Study Resources</h3>
+                        <span class="text-xs text-slate-400">({{ $allResources->count() }})</span>
+                    </div>
+                    <a href="{{ route('student.courses.resources', $course) }}" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                        View all →
+                    </a>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    @foreach($allResources->take(5) as $resource)
+                        @include('student.resources._resource-row', compact('resource'))
+                    @endforeach
+                </div>
+                @if($allResources->count() > 5)
+                <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/40 text-center">
+                    <a href="{{ route('student.courses.resources', $course) }}" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                        + {{ $allResources->count() - 5 }} more resources
+                    </a>
+                </div>
+                @endif
+            </div>
+            @endif
+
             {{-- Prev / Next --}}
             <div class="flex justify-between gap-4">
                 @if($prev)
@@ -88,6 +119,17 @@
 
         {{-- Lesson sidebar --}}
         <div class="space-y-4">
+            {{-- Quick links --}}
+            <div class="card p-4 flex flex-col gap-2">
+                <a href="{{ route('student.courses.resources', $course) }}"
+                    class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition-colors text-indigo-700 text-sm font-medium">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.966 8.966 0 0 0-6 2.292m0-14.25v14.25"/>
+                    </svg>
+                    Study Resources
+                </a>
+            </div>
+
             <div class="card overflow-hidden sticky top-6">
                 <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="font-semibold text-slate-800 text-sm">{{ $lesson->course->title }}</h3>
