@@ -42,7 +42,10 @@
                         <div class="flex items-center gap-3 pt-1">
                             <button type="submit" class="btn btn-primary btn-sm">Save photo</button>
                             @if($user->avatar)
-                                <a href="{{ route('profile.remove-avatar') }}" class="text-xs text-red-500 hover:text-red-700 transition-colors">Remove</a>
+                                <form method="POST" action="{{ route('profile.remove-avatar') }}" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-xs text-red-500 hover:text-red-700 transition-colors">Remove</button>
+                                </form>
                             @endif
                         </div>
                     </div>
@@ -57,12 +60,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-group">
                     <label class="form-label" for="name">Full Name</label>
-                    <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" class="form-input" required>
+                    <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" class="form-input" required autocomplete="name">
                     @error('name') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="email">Email Address</label>
-                    <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-input" required>
+                    <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-input" required autocomplete="email">
                     @if($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
                         <p class="form-hint text-amber-600">⚠ Email not verified. <a href="{{ route('verification.send') }}" class="underline">Resend</a></p>
                     @endif
@@ -70,15 +73,15 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="phone">Phone Number</label>
-                    <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+263 77 ..." class="form-input">
+                    <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+263 77 ..." class="form-input" autocomplete="tel">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="country">Country</label>
-                    <input type="text" id="country" name="country" value="{{ old('country', $user->country) }}" placeholder="Zimbabwe" class="form-input">
+                    <input type="text" id="country" name="country" value="{{ old('country', $user->country) }}" placeholder="Zimbabwe" class="form-input" autocomplete="country-name">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="city">City / Town</label>
-                    <input type="text" id="city" name="city" value="{{ old('city', $user->city) }}" placeholder="Harare" class="form-input">
+                    <input type="text" id="city" name="city" value="{{ old('city', $user->city) }}" placeholder="Harare" class="form-input" autocomplete="address-level2">
                 </div>
                 @if($user->isTeacher())
                 <div class="form-group">
