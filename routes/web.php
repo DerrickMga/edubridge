@@ -42,6 +42,8 @@ use App\Http\Controllers\Student\DiscussionController as StudentDiscussionContro
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ZoomWebhookController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\Admin\SupportController as AdminSupportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'))->name('home');
@@ -363,6 +365,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('policies/matrix/events',                  [\App\Http\Controllers\Admin\PolicyController::class, 'storeMatrixEvent'])->name('policies.matrix.events.store');
     Route::post('policies/matrix/incidents',               [\App\Http\Controllers\Admin\PolicyController::class, 'logIncident'])->name('policies.matrix.incidents.store');
     Route::patch('policies/matrix/incidents/{incident}',   [\App\Http\Controllers\Admin\PolicyController::class, 'updateIncident'])->name('policies.matrix.incidents.update');
+
+    // Support Inbox + Email Composer
+    Route::get('support',                                  [AdminSupportController::class, 'index'])->name('support.index');
+    Route::get('support/email',                            [AdminSupportController::class, 'emailComposer'])->name('support.email');
+    Route::post('support/email',                           [AdminSupportController::class, 'sendEmail'])->name('support.send-email');
+    Route::get('support/{ticket}',                         [AdminSupportController::class, 'show'])->name('support.show');
+    Route::post('support/{ticket}/reply',                  [AdminSupportController::class, 'reply'])->name('support.reply');
+    Route::patch('support/{ticket}/status',                [AdminSupportController::class, 'updateStatus'])->name('support.status');
 });
 
 Route::middleware('auth')->group(function () {
@@ -378,6 +388,14 @@ Route::middleware('auth')->group(function () {
         auth()->user()->unreadNotifications->markAsRead();
         return back();
     })->name('notifications.read-all');
+
+    // Support tickets (students + teachers)
+    Route::middleware('role:student,teacher')->group(function () {
+        Route::get('support',                    [SupportTicketController::class, 'index'])->name('support.index');
+        Route::post('support',                   [SupportTicketController::class, 'store'])->name('support.store');
+        Route::get('support/{ticket}',           [SupportTicketController::class, 'show'])->name('support.show');
+        Route::post('support/{ticket}/reply',    [SupportTicketController::class, 'reply'])->name('support.reply');
+    });
 });
 
 Route::prefix('payments')->name('payments.')->middleware(['auth', 'throttle:payments'])->group(function () {
