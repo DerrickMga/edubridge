@@ -2,13 +2,33 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Quiz, QuizAttempt};
+use App\Models\{Course, Quiz, QuizAttempt};
 use App\Services\GamificationService;
 use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
     public function __construct(private readonly GamificationService $gamification) {}
+
+    /** List all published quizzes for an enrolled course */
+    public function index(Request $request, Course $course)
+    {
+        $student = $request->user();
+        $enrolled = $student->enrollments()->where('course_id', $course->id)->exists();
+        abort_if(!$enrolled && !$student->isAdmin(), 403);
+
+        $quizzes = $course->quizzes()
+            ->where('is_published', true)
+            ->with('lesson')
+            ->get()
+            ->map(function ($q) use ($student) {
+                $q->my_attempts = QuizAttempt::where('quiz_id', $q->id)
+                    ->where('student_id', $student->id)->get();
+                return $q;
+            });
+
+        return view('student.quizzes.index', compact('course', 'quizzes'));
+    }
 
     public function show(Quiz $quiz)
     {

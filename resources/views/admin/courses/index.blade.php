@@ -85,7 +85,19 @@
                             </div>
                         </div>
                     </td>
-                    <td class="text-sm text-slate-600">{{ $course->teacher->name ?? '—' }}</td>
+                    <td class="text-sm text-slate-600">
+                        {{-- Inline assign-teacher --}}
+                        <form method="POST" action="{{ route('admin.courses.assign-teacher', $course) }}" class="flex items-center gap-1.5">
+                            @csrf @method('PATCH')
+                            <select name="teacher_id" class="border border-slate-200 rounded-md px-2 py-1 text-xs focus:ring-1 focus:ring-emerald-500 outline-none max-w-[140px]">
+                                <option value="">— Unassigned —</option>
+                                @foreach($teachers as $t)
+                                <option value="{{ $t->id }}" {{ $course->teacher_id == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded px-1.5 py-1 transition" title="Save">✓</button>
+                        </form>
+                    </td>
                     <td>
                         <p class="text-sm text-slate-700">{{ $course->subject }}</p>
                         <p class="text-xs text-slate-400">{{ $course->grade_level }}</p>

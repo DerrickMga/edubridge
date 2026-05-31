@@ -41,6 +41,27 @@ class CourseController extends Controller
         return back()->with('success', 'Course "' . $course->title . '" is now ' . $course->status . '.');
     }
 
+    /** Force-assign (or unassign) a teacher from the admin panel */
+    public function assignTeacher(Request $request, Course $course)
+    {
+        $data = $request->validate([
+            'teacher_id' => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($data['teacher_id']) {
+            $teacher = User::findOrFail($data['teacher_id']);
+            abort_if(!$teacher->hasRole('teacher') && !$teacher->isAdmin(), 422, 'User is not a teacher.');
+        }
+
+        $course->update(['teacher_id' => $data['teacher_id'] ?? null]);
+
+        $name = $data['teacher_id']
+            ? User::find($data['teacher_id'])->name
+            : 'unassigned';
+
+        return back()->with('success', 'Course "' . $course->title . '" assigned to ' . $name . '.');
+    }
+
     public function destroy(Course $course)
     {
         $title = $course->title;
@@ -48,4 +69,5 @@ class CourseController extends Controller
 
         return back()->with('success', 'Course "' . $title . '" was deleted.');
     }
+}
 }

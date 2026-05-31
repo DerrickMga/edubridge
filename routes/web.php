@@ -37,6 +37,8 @@ use App\Http\Controllers\Admin\EquipmentController as AdminEquipmentController;
 use App\Http\Controllers\Teacher\EquipmentController as TeacherEquipmentController;
 use App\Http\Controllers\Student\TransactionController as StudentTransactionController;
 use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\AssignmentController as StudentAssignmentController;
+use App\Http\Controllers\Student\DiscussionController as StudentDiscussionController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ZoomWebhookController;
@@ -103,6 +105,17 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('quizzes/{quiz}',         [StudentQuizController::class, 'show'])->name('quizzes.show');
     Route::post('quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
     Route::get('quizzes/{quiz}/result/{attempt}', [StudentQuizController::class, 'result'])->name('quizzes.result');
+    Route::get('courses/{course}/quizzes', [StudentQuizController::class, 'index'])->name('courses.quizzes');
+
+    // Assignments
+    Route::get('assignments',                       [StudentAssignmentController::class, 'index'])->name('assignments.index');
+    Route::get('assignments/{assignment}',          [StudentAssignmentController::class, 'show'])->name('assignments.show');
+    Route::post('assignments/{assignment}/submit',  [StudentAssignmentController::class, 'store'])->name('assignments.submit');
+
+    // Lesson Discussions
+    Route::get('lessons/{lesson}/discussions',   [StudentDiscussionController::class, 'index'])->name('discussions.index');
+    Route::post('lessons/{lesson}/discussions',  [StudentDiscussionController::class, 'store'])->name('discussions.store');
+    Route::delete('discussions/{discussion}',    [StudentDiscussionController::class, 'destroy'])->name('discussions.destroy');
 
     // Certificate
     Route::get('courses/{course}/certificate', function (\App\Models\Course $course) {
@@ -248,6 +261,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     // Course Management
     Route::get('courses',                                    [AdminCourseController::class, 'index'])->name('courses.index');
     Route::patch('courses/{course}/toggle-status',           [AdminCourseController::class, 'toggleStatus'])->name('courses.toggle-status');
+    Route::patch('courses/{course}/assign-teacher',          [AdminCourseController::class, 'assignTeacher'])->name('courses.assign-teacher');
     Route::delete('courses/{course}',                        [AdminCourseController::class, 'destroy'])->name('courses.destroy');
 
     // AI Tools
