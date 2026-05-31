@@ -268,6 +268,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::post('availability/status',             [\App\Http\Controllers\Teacher\AvailabilityController::class, 'setStatus'])->name('availability.status');
     Route::get('shifts',                           [\App\Http\Controllers\Teacher\ShiftController::class, 'index'])->name('shifts.index');
 
+    // Lesson Tracker — schedule overview, attendance, hour logging, notes
+    Route::get('lesson-tracker',                                     [\App\Http\Controllers\Teacher\LessonTrackerController::class, 'index'])->name('lesson-tracker');
+    Route::patch('live-sessions/{liveSession}/notes',                [\App\Http\Controllers\Teacher\LessonTrackerController::class, 'updateNotes'])->name('sessions.notes');
+    Route::patch('live-sessions/{liveSession}/complete',             [\App\Http\Controllers\Teacher\LessonTrackerController::class, 'markComplete'])->name('sessions.complete');
+
     // Policy library + contract
     Route::get('policies',                           [\App\Http\Controllers\Teacher\PolicyController::class, 'index'])->name('policies.index');
     Route::get('policies/contract',                  [\App\Http\Controllers\Teacher\PolicyController::class, 'contract'])->name('policies.contract');

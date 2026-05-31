@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\LiveSession;
 use App\Models\TeacherAvailability;
 use App\Models\TeacherShift;
@@ -194,6 +195,32 @@ class WorkforceController extends Controller
             ->limit(10)
             ->get();
 
+        // Teacher's courses (primary or co-teacher via pivot)
+        $teacherCourses = Course::where(function ($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id)
+              ->orWhereHas('teachers', fn ($sq) => $sq->where('users.id', $teacher->id));
+        })->withCount(['lessons', 'enrollments'])->orderBy('title')->get();
+
+        $coursesData = $teacherCourses->map(function ($c) use ($teacher) {
+            $sessions = LiveSession::where('course_id', $c->id)
+                ->where('teacher_id', $teacher->id)
+                ->withCount('attendances')
+                ->get();
+            return [
+                'id'                => $c->id,
+                'title'             => $c->title,
+                'subject'           => $c->subject,
+                'grade_level'       => $c->grade_level,
+                'status'            => $c->status,
+                'lessons_count'     => $c->lessons_count,
+                'enrollments_count' => $c->enrollments_count,
+                'sessions_total'    => $sessions->count(),
+                'sessions_done'     => $sessions->whereIn('status', ['completed'])->count(),
+                'sessions_upcoming' => $sessions->where('scheduled_at', '>=', now())->count(),
+                'total_attendance'  => $sessions->sum('attendances_count'),
+            ];
+        })->values();
+
         return response()->json([
             'teacher' => [
                 'id'                  => $teacher->id,
@@ -243,6 +270,7 @@ class WorkforceController extends Controller
                 'duration_hours'=> $s->duration_hours,
                 'payout'        => $s->payout_amount_usd,
             ])->values(),
+            'courses' => $coursesData,
         ]);
     }
 

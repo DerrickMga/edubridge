@@ -514,6 +514,85 @@
                 <p class="text-slate-400 text-sm">Loading teacher data…</p>
             </div>
         </div>
+
+        {{-- ── Courses ── --}}
+        <div x-show="activeTab === 'courses' && !loading" class="flex-1 overflow-y-auto p-5 space-y-4">
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Assigned courses &amp; delivery stats</h3>
+
+            <div x-show="courses.length === 0" class="text-sm text-slate-400 text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                No courses assigned to this teacher.
+            </div>
+
+            {{-- All-courses summary --}}
+            <div x-show="courses.length > 0" class="grid grid-cols-4 gap-2">
+                <div class="bg-slate-50 rounded-lg p-3 text-center border border-slate-100">
+                    <p class="text-[10px] text-slate-400 uppercase">Courses</p>
+                    <p class="font-bold text-slate-800 text-lg" x-text="courses.length"></p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-3 text-center border border-blue-100">
+                    <p class="text-[10px] text-blue-400 uppercase">Sessions</p>
+                    <p class="font-bold text-blue-700 text-lg" x-text="courses.reduce((s,c) => s + c.sessions_total, 0)"></p>
+                </div>
+                <div class="bg-emerald-50 rounded-lg p-3 text-center border border-emerald-100">
+                    <p class="text-[10px] text-emerald-400 uppercase">Completed</p>
+                    <p class="font-bold text-emerald-700 text-lg" x-text="courses.reduce((s,c) => s + c.sessions_done, 0)"></p>
+                </div>
+                <div class="bg-violet-50 rounded-lg p-3 text-center border border-violet-100">
+                    <p class="text-[10px] text-violet-400 uppercase">Attendance</p>
+                    <p class="font-bold text-violet-700 text-lg" x-text="courses.reduce((s,c) => s + c.total_attendance, 0)"></p>
+                </div>
+            </div>
+
+            <template x-for="c in courses" :key="c.id">
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    {{-- Course header --}}
+                    <div class="flex items-start justify-between gap-3 px-4 py-3 bg-slate-50 border-b border-slate-100">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-slate-900 text-sm leading-snug truncate" x-text="c.title"></p>
+                            <p class="text-xs text-slate-400 mt-0.5" x-text="(c.subject || 'General') + (c.grade_level ? ' · ' + c.grade_level : '')"></p>
+                        </div>
+                        <span :class="c.status === 'published' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'"
+                              class="text-[10px] px-2 py-0.5 rounded-full capitalize shrink-0 font-semibold border" x-text="c.status"></span>
+                    </div>
+
+                    {{-- Course stats grid --}}
+                    <div class="grid grid-cols-5 divide-x divide-slate-100 text-center">
+                        <div class="px-2 py-3">
+                            <p class="text-[10px] text-slate-400">Students</p>
+                            <p class="font-bold text-slate-800" x-text="c.enrollments_count"></p>
+                        </div>
+                        <div class="px-2 py-3">
+                            <p class="text-[10px] text-slate-400">Lessons</p>
+                            <p class="font-bold text-slate-700" x-text="c.lessons_count"></p>
+                        </div>
+                        <div class="px-2 py-3">
+                            <p class="text-[10px] text-blue-400">Upcoming</p>
+                            <p class="font-bold text-blue-700" x-text="c.sessions_upcoming"></p>
+                        </div>
+                        <div class="px-2 py-3">
+                            <p class="text-[10px] text-emerald-400">Done</p>
+                            <p class="font-bold text-emerald-700" x-text="c.sessions_done"></p>
+                        </div>
+                        <div class="px-2 py-3">
+                            <p class="text-[10px] text-violet-400">Attended</p>
+                            <p class="font-bold text-violet-700" x-text="c.total_attendance"></p>
+                        </div>
+                    </div>
+
+                    {{-- Completion bar --}}
+                    <div class="px-4 py-2 border-t border-slate-100 bg-white">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-100 rounded-full h-1.5">
+                                <div class="bg-emerald-500 h-1.5 rounded-full transition-all"
+                                     :style="'width:' + (c.sessions_total > 0 ? Math.round((c.sessions_done / c.sessions_total) * 100) : 0) + '%'"></div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 shrink-0"
+                                  x-text="c.sessions_total > 0 ? Math.round((c.sessions_done / c.sessions_total) * 100) + '% done' : 'No sessions'"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
     </div>
 
 </div>
@@ -530,6 +609,7 @@ function workforcePanel(autoOpenId) {
             { id: 'availability', label: 'Availability' },
             { id: 'timeoff',      label: 'Time Off' },
             { id: 'shifts',       label: 'Shifts' },
+            { id: 'courses',      label: 'Courses' },
         ],
         teacher: {},
         availability: [],
@@ -537,6 +617,7 @@ function workforcePanel(autoOpenId) {
         upcomingShifts: [],
         recentShifts: [],
         thisWeek: null,
+        courses: [],
 
         init() {
             if (autoOpenId) {
@@ -554,6 +635,7 @@ function workforcePanel(autoOpenId) {
             this.upcomingShifts = [];
             this.recentShifts = [];
             this.thisWeek = null;
+            this.courses = [];
 
             fetch(`/admin/workforce/teachers/${id}`, {
                 headers: {
@@ -573,6 +655,7 @@ function workforcePanel(autoOpenId) {
                 this.upcomingShifts = data.upcoming_shifts;
                 this.recentShifts   = data.recent_shifts;
                 this.thisWeek       = data.this_week;
+                this.courses        = data.courses ?? [];
                 this.loading        = false;
             })
             .catch(() => { this.loading = false; });
