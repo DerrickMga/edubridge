@@ -22,7 +22,7 @@
             <p class="text-sm text-red-100">{{ $soon->title }} &middot; {{ $soon->course->title ?? '' }}</p>
         </div>
         @if($soon->meeting_url)
-        <a href="{{ $soon->meeting_url }}" target="_blank" rel="noopener"
+        <a href="{{ route('student.live-sessions.join', $soon) }}"
            class="flex-shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50 transition-colors">
             Join now
         </a>
@@ -189,7 +189,7 @@
 
             {{-- Join button --}}
             @if($session->meeting_url)
-            <a href="{{ $session->meeting_url }}" target="_blank" rel="noopener"
+            <a href="{{ route('student.live-sessions.join', $session) }}"
                class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg {{ $joinBg }} text-white text-sm font-semibold transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
                 Join class

@@ -16,7 +16,7 @@ class Course extends Model
     public function teacher()       { return $this->belongsTo(User::class, 'teacher_id'); }
     public function lessons()       { return $this->hasMany(Lesson::class)->orderBy('order'); }
     public function liveSessions()  { return $this->hasMany(LiveSession::class); }
-    public function enrollments()   { return $this->belongsToMany(User::class, 'enrollments')->withTimestamps(); }
+    public function enrollments()   { return $this->belongsToMany(User::class, 'enrollments')->withTimestamps()->withPivot('status', 'access_period', 'expires_at'); }
     public function payments()      { return $this->hasMany(Payment::class); }
     public function resources()     { return $this->hasMany(Resource::class)->orderBy('sort_order'); }
     public function assignments()   { return $this->hasMany(Assignment::class); }

@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Announcement, Course};
+use App\Notifications\AnnouncementNotification;
 use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
@@ -16,7 +17,7 @@ class AnnouncementController extends Controller
             'body'  => ['required', 'string'],
         ]);
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'course_id'    => $course->id,
             'author_id'    => auth()->id(),
             'title'        => $request->title,
@@ -24,6 +25,11 @@ class AnnouncementController extends Controller
             'audience'     => 'enrolled',
             'published_at' => now(),
         ]);
+
+        // Notify all enrolled students
+        $course->load('enrollments');
+        $notification = new AnnouncementNotification($announcement);
+        $course->enrollments->each(fn ($student) => $student->notify($notification));
 
         return back()->with('success', 'Announcement posted.');
     }

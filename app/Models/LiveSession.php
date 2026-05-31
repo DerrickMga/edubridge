@@ -16,9 +16,13 @@ class LiveSession extends Model
         'breakout_rooms_enabled' => 'boolean',
     ];
 
-    public function course()     { return $this->belongsTo(Course::class); }
-    public function teacher()    { return $this->belongsTo(User::class, 'teacher_id'); }
-    public function recordings() { return $this->hasMany(Recording::class); }
+    public function course()      { return $this->belongsTo(Course::class); }
+    public function teacher()     { return $this->belongsTo(User::class, 'teacher_id'); }
+    public function recordings()  { return $this->hasMany(Recording::class); }
+    public function attendances() { return $this->hasMany(SessionAttendance::class); }
+    public function sessionLog()  { return $this->hasOne(SessionLog::class); }
+    public function aiReport()    { return $this->hasOne(SessionAiReport::class); }
+    public function paymentItem() { return $this->hasOne(TeacherPaymentItem::class); }
 
     public function scopeUpcoming($q)
     {

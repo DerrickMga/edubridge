@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 <body class="h-full bg-slate-50 antialiased" x-data="{ sidebarOpen: false }">
 <div class="flex min-h-screen">
@@ -189,5 +190,6 @@
         style="display:none;"
     ></div>
 </div>
+@stack('scripts')
 </body>
 </html>

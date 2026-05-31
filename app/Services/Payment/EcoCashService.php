@@ -1,7 +1,8 @@
 <?php
 namespace App\Services\Payment;
 
-use App\Models\{Course, Payment};
+use App\Models\{Course, Payment, User};
+use App\Notifications\EnrollmentConfirmationNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -77,7 +78,14 @@ class EcoCashService
             $payment   = Payment::find($paymentId);
             if ($payment && strtolower($statusCode ?? '') === 'completed') {
                 $payment->update(['status' => 'paid']);
-                $payment->course?->enrollments()->syncWithoutDetaching([$payment->user_id]);
+                $course = $payment->course;
+                if ($course) {
+                    $course->enrollments()->syncWithoutDetaching([$payment->user_id]);
+                    $student = User::find($payment->user_id);
+                    if ($student) {
+                        $student->notify(new EnrollmentConfirmationNotification($course, $payment));
+                    }
+                }
             }
         }
 

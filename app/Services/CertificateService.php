@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\{Certificate, Course, LessonProgress, User};
+use App\Notifications\CertificateEarnedNotification;
 
 class CertificateService
 {
@@ -26,11 +27,15 @@ class CertificateService
 
         if ($completedLessons < $totalLessons) return null;
 
-        return Certificate::create([
+        $certificate = Certificate::create([
             'student_id'         => $student->id,
             'course_id'          => $course->id,
             'certificate_number' => Certificate::generateNumber(),
             'issued_at'          => now(),
         ]);
+
+        $student->notify(new CertificateEarnedNotification($certificate, $course));
+
+        return $certificate;
     }
 }

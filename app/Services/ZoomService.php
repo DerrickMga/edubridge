@@ -150,4 +150,55 @@ class ZoomService
 
         return null;
     }
+
+    /**
+     * Fetch the plain-text transcript (VTT file) for a cloud-recorded meeting.
+     * Returns the raw text content, or null if no transcript is available yet.
+     */
+    public function getTranscript(string $meetingId): ?string
+    {
+        $response = Http::withToken($this->accessToken())
+            ->get("{$this->baseUrl}/meetings/{$meetingId}/recordings");
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        $files = $response->json('recording_files', []);
+
+        foreach ($files as $file) {
+            if (($file['file_type'] ?? '') === 'TRANSCRIPT' && ($file['status'] ?? '') === 'completed') {
+                $downloadUrl = $file['download_url'] ?? null;
+                if (! $downloadUrl) {
+                    continue;
+                }
+                // Zoom requires the access token on transcript download requests
+                $text = Http::withToken($this->accessToken())
+                    ->get($downloadUrl)
+                    ->body();
+                return $text ?: null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get participant list for a past meeting.
+     * Returns an array of participant records.
+     */
+    public function getMeetingParticipants(string $meetingId): array
+    {
+        $response = Http::withToken($this->accessToken())
+            ->get("{$this->baseUrl}/past_meetings/{$meetingId}/participants", [
+                'page_size' => 300,
+            ]);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return $response->json('participants', []);
+    }
 }
+

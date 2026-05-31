@@ -17,8 +17,22 @@ return [
     ],
 
     'anthropic' => [
-        'api_key' => env('ANTHROPIC_API_KEY'),
-        'model'   => env('ANTHROPIC_MODEL', 'claude-3-5-haiku-20241022'),
+        'endpoint'    => env('ANTHROPIC_ENDPOINT', 'https://info-5426-resource.openai.azure.com/openai/v1'),
+        'api_key'     => env('ANTHROPIC_API_KEY'),
+        'model'       => env('ANTHROPIC_MODEL', 'claude-opus-4-7'),
+        'api_version' => env('ANTHROPIC_API_VERSION', '2024-10-21'),
+    ],
+
+    'azure_ai' => [
+        'endpoint'    => env('AZURE_AI_ENDPOINT'),
+        'key'         => env('AZURE_AI_KEY'),
+        'api_version' => env('AZURE_AI_API_VERSION', '2025-01-01'),
+    ],
+
+    'openai' => [
+        'api_key'          => env('OPENAI_API_KEY'),
+        'companion_model'  => env('OPENAI_COMPANION_MODEL', 'gpt-4o'),
+        'base_url'         => 'https://api.openai.com/v1',
     ],
 
     'whatsapp' => [
@@ -49,6 +63,17 @@ return [
     'innbucks' => [
         'api_key'     => env('INNBUCKS_API_KEY'),
         'merchant_id' => env('INNBUCKS_MERCHANT_ID'),
+    ],
+
+    'payfast' => [
+        'merchant_id'  => env('PAYFAST_MERCHANT_ID'),
+        'merchant_key' => env('PAYFAST_MERCHANT_KEY'),
+        'passphrase'   => env('PAYFAST_PASSPHRASE', ''),
+        'test_mode'    => env('PAYFAST_TEST_MODE', false),
+        'return_url'   => env('PAYFAST_RETURN_URL', env('APP_URL').'/payments/success'),
+        'cancel_url'   => env('PAYFAST_CANCEL_URL', env('APP_URL').'/payments/cancel'),
+        'notify_url'   => env('PAYFAST_NOTIFY_URL', env('APP_URL').'/payments/webhook/payfast'),
+        'usd_zar_rate' => env('PAYFAST_USD_ZAR_RATE', 18.5),
     ],
 
     'zoom' => [

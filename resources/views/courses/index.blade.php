@@ -83,14 +83,20 @@
                 'computer science','a-level computer science' => 'from-indigo-500 to-violet-600',
                 default => 'from-slate-500 to-slate-700',
             };
+            $enrolled = auth()->check() && auth()->user()->enrollments->contains('id', $course->id);
         @endphp
-        <div class="card hover:shadow-card-hover transition-all duration-200 overflow-hidden flex flex-col">
-            <div class="h-32 bg-gradient-to-br {{ $color }} flex flex-col justify-between p-4">
-                <span class="badge bg-white/20 text-white text-xs">{{ $course->subject }}</span>
+        <a href="{{ route('courses.show', $course) }}" class="card hover:shadow-card-hover transition-all duration-200 overflow-hidden flex flex-col group">
+            <div class="h-32 bg-gradient-to-br {{ $color }} flex flex-col justify-between p-4 relative">
+                <div class="flex items-center justify-between">
+                    <span class="badge bg-white/20 text-white text-xs">{{ $course->subject }}</span>
+                    @if($enrolled)
+                        <span class="badge bg-white/30 text-white text-xs font-semibold">✓ Enrolled</span>
+                    @endif
+                </div>
                 <span class="text-xs text-white/70">{{ $course->grade_level }}</span>
             </div>
             <div class="p-5 flex flex-col flex-1">
-                <h3 class="font-semibold text-slate-900 leading-snug mb-1">{{ $course->title }}</h3>
+                <h3 class="font-semibold text-slate-900 leading-snug mb-1 group-hover:text-emerald-700 transition">{{ $course->title }}</h3>
                 @if($course->description)
                 <p class="text-xs text-slate-400 mb-3 line-clamp-2 flex-1">{{ $course->description }}</p>
                 @else
@@ -109,14 +115,14 @@
                         <span class="badge-green">Free</span>
                         @endif
                     </div>
-                    @auth
-                        <a href="{{ route('payments.checkout', $course) }}" class="btn-primary btn-sm">Enrol</a>
+                    @if($enrolled)
+                        <span class="btn-secondary btn-sm pointer-events-none text-xs">Continue →</span>
                     @else
-                        <a href="{{ route('register') }}" class="btn-primary btn-sm">Enrol</a>
-                    @endauth
+                        <span class="btn-primary btn-sm text-xs">View course</span>
+                    @endif
                 </div>
             </div>
-        </div>
+        </a>
         @endforeach
     </div>
     <div class="mt-8">{{ $courses->withQueryString()->links() }}</div>

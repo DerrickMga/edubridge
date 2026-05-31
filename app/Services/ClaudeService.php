@@ -1,34 +1,69 @@
 <?php
 namespace App\Services;
 
-use Anthropic\Client;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class ClaudeService
 {
-    private Client $client;
+    private string $endpoint;
+    private string $apiKey;
+    private string $apiVersion;
 
     public function __construct()
     {
-        $this->client = new Client(apiKey: config('services.anthropic.api_key', ''));
+        $this->endpoint   = config('services.azure_ai.endpoint', '');
+        $this->apiKey     = config('services.azure_ai.key', '');
+        $this->apiVersion = config('services.azure_ai.api_version', '2025-01-01');
     }
 
+    /**
+     * Send a conversation to the Azure AI ChiedzaEdu agent.
+     * Uses the OpenAI Responses API with the required api-version query param.
+     *
+     * @param  array<array{role: string, content: string}>  $messages
+     */
     public function chat(array $messages, string $system = null): string
     {
-        $system ??= <<<PROMPT
-You are Chiedza, EduBridge's AI learning companion for Zimbabwean students.
-You help students understand their school subjects (O-level and A-level curriculum),
-answer questions, explain concepts clearly, and encourage them.
-Be warm, supportive, and culturally aware. Use simple English.
-Keep answers concise and focused on learning.
-PROMPT;
+        if (empty($this->endpoint) || empty($this->apiKey)) {
+            Log::warning('ClaudeService: Azure AI not configured, returning stub.');
+            return "I'm Chiedza, your AI study companion. Azure AI is not yet configured — please contact your administrator.";
+        }
 
-        $response = $this->client->messages()->create([
-            'model'      => config('services.anthropic.model', 'claude-3-5-haiku-20241022'),
-            'max_tokens' => 1024,
-            'system'     => $system,
-            'messages'   => $messages,
-        ]);
+        $input = $messages;
+        if ($system !== null) {
+            array_unshift($input, ['role' => 'system', 'content' => $system]);
+        }
 
-        return $response->content[0]->text ?? '';
+        // Build URL with required api-version query parameter
+        $url = $this->endpoint . (str_contains($this->endpoint, '?') ? '&' : '?')
+             . 'api-version=' . $this->apiVersion;
+
+        $response = Http::withToken($this->apiKey)
+            ->timeout(45)
+            ->post($url, ['input' => $input]);
+
+        if ($response->failed()) {
+            Log::error('ClaudeService: Azure AI failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 500),
+            ]);
+            throw new RuntimeException(
+                'Azure AI request failed ('.$response->status().'): '.$response->body()
+            );
+        }
+
+        $body = $response->json();
+
+        // OpenAI Responses API v1: output[0].content[0].text
+        $text = data_get($body, 'output.0.content.0.text');
+
+        // Fallback: standard chat completions format
+        if (empty($text)) {
+            $text = data_get($body, 'choices.0.message.content');
+        }
+
+        return (string) ($text ?? '');
     }
 }

@@ -284,6 +284,107 @@
     </div>
     @endif
 
+    {{-- Past Sessions — Log Your Hours ─────────────────────────────────── --}}
+    @if($pastSessions->isNotEmpty())
+    <div class="flex items-center justify-between mb-4 mt-8">
+        <div>
+            <h2 class="section-title">Past Sessions — Log Your Hours</h2>
+            @if($pendingPayments > 0)
+            <p class="text-sm text-emerald-600 font-medium mt-0.5">
+                ${{ number_format($pendingPayments, 2) }} approved &amp; awaiting payment
+            </p>
+            @endif
+        </div>
+    </div>
+    <div class="space-y-3 mb-8">
+        @foreach($pastSessions as $session)
+        @php $log = $session->sessionLog; $pay = $session->paymentItem; $ai = $session->aiReport; @endphp
+        <div class="card p-4">
+            <div class="flex flex-wrap items-start gap-4">
+                {{-- Date block --}}
+                <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-100 flex flex-col items-center justify-center">
+                    <span class="text-xs font-medium uppercase text-slate-500">{{ $session->scheduled_at->format('M') }}</span>
+                    <span class="text-lg font-extrabold text-slate-800">{{ $session->scheduled_at->format('d') }}</span>
+                </div>
+
+                {{-- Info --}}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                        <p class="font-semibold text-slate-900">{{ $session->title }}</p>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                            {{ $session->provider === 'Zoom' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600' }}">
+                            {{ $session->provider }}
+                        </span>
+                        @if($pay)
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                                {{ $pay->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : ($pay->status === 'approved' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700') }}">
+                                ${{ number_format($pay->total_usd, 2) }} — {{ ucfirst($pay->status) }}
+                            </span>
+                        @endif
+                        @if($ai && $ai->processed_at)
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">AI ✓</span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        {{ $session->course->title ?? '—' }} ·
+                        {{ $session->scheduled_at->format('D d M Y g:i a') }} ·
+                        {{ $session->duration_minutes }} min planned
+                    </p>
+                    @if($log)
+                    <p class="text-xs text-slate-500 mt-1">
+                        Logged: {{ $log->actual_duration_minutes }} min · {{ $log->actual_student_count }} students
+                        @if($log->notes) — <em>{{ Str::limit($log->notes, 60) }}</em>@endif
+                    </p>
+                    @endif
+                </div>
+
+                {{-- Action: log form or status --}}
+                @if(! $log)
+                <div x-data="{ open: false }" class="flex-shrink-0">
+                    <button @click="open = !open"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                        Log hours
+                    </button>
+                    <div x-show="open" x-cloak class="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <form action="{{ route('teacher.sessions.log', $session) }}" method="POST" class="space-y-3">
+                            @csrf
+                            <div class="grid sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-600 block mb-1">Actual duration (min)</label>
+                                    <input type="number" name="actual_duration_minutes" min="1" max="720"
+                                           value="{{ $session->duration_minutes }}"
+                                           class="form-input text-sm w-full" required>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-600 block mb-1">Students in attendance</label>
+                                    <input type="number" name="actual_student_count" min="0" max="2000"
+                                           value="{{ $session->attendances->count() }}"
+                                           class="form-input text-sm w-full" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600 block mb-1">Notes (optional)</label>
+                                <textarea name="notes" rows="2" maxlength="2000"
+                                          placeholder="Topics covered, issues, student engagement…"
+                                          class="form-input text-sm w-full resize-none"></textarea>
+                            </div>
+                            <button type="submit"
+                                    class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+                                Submit log &amp; claim payment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @else
+                <span class="flex-shrink-0 text-xs text-emerald-600 font-semibold">✓ Logged</span>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     {{-- My Courses ───────────────────────────────────────────────────────── --}}
     <div class="flex items-center justify-between mb-4">
         <h2 class="section-title">My Courses</h2>

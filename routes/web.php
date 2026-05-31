@@ -2,8 +2,12 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\AiController as AdminAiController;
 use App\Http\Controllers\Student\AchievementsController;
 use App\Http\Controllers\Student\CompanionController;
+use App\Http\Controllers\Student\CompanionUploadController;
+use App\Http\Controllers\Student\LiveSessionController as StudentLiveSessionController;
 use App\Http\Controllers\Student\LeaderboardController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 use App\Http\Controllers\Student\LessonController;
@@ -17,7 +21,12 @@ use App\Http\Controllers\Teacher\LessonController as TeacherLessonController;
 use App\Http\Controllers\Teacher\LiveSessionController;
 use App\Http\Controllers\Teacher\QuizController as TeacherQuizController;
 use App\Http\Controllers\Teacher\RecordingController;
+use App\Http\Controllers\Teacher\SessionLogController;
+use App\Http\Controllers\Admin\SessionReportController as AdminSessionReportController;
+use App\Http\Controllers\Admin\TeacherPaymentController;
 use App\Http\Controllers\Teacher\ResourceController;
+use App\Http\Controllers\Teacher\AiToolsController;
+use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -40,8 +49,18 @@ Route::get('/courses', function () {
               ->orWhere('subject', 'like', '%'.request('search').'%');
         });
     }
-    return view('courses.index', ['courses' => $query->paginate(12)]);
+    $courses = $query->paginate(12);
+
+    // Eager-load current user's enrollments for enrolled badges
+    if (auth()->check()) {
+        auth()->user()->load('enrollments');
+    }
+
+    return view('courses.index', compact('courses'));
 })->name('courses.index');
+
+// Public course detail page (enrollment-aware)
+Route::get('/courses/{course}', [EnrollmentController::class, 'show'])->name('courses.show');
 
 // Certificate public verification
 Route::get('/verify/{number}', function (string $number) {
@@ -85,11 +104,21 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('leaderboard',  [LeaderboardController::class, 'index'])->name('leaderboard');
 
+    // Live Session gated join (validates active enrolment before releasing the Zoom URL)
+    Route::get('live-sessions/{liveSession}/join', [StudentLiveSessionController::class, 'join'])->name('live-sessions.join');
+
+    // Course enrollment
+    Route::post('courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('courses.enroll');
+
     // AI Companion
     Route::get('companion',                      [CompanionController::class, 'index'])->name('companion.index');
     Route::post('companion',                     [CompanionController::class, 'store'])->name('companion.store');
     Route::get('companion/{conversation}',       [CompanionController::class, 'show'])->name('companion.show');
-    Route::post('companion/{conversation}/send', [CompanionController::class, 'send'])->name('companion.send');
+    Route::post('companion/{conversation}/send',       [CompanionController::class, 'send'])->name('companion.send');
+    Route::post('companion/{conversation}/study-plan', [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
+    Route::post('companion/{conversation}/notes',      [CompanionController::class, 'notes'])->name('companion.notes');
+    Route::patch('companion/{conversation}/prefs',     [CompanionController::class, 'updatePreferences'])->name('companion.prefs');
+    Route::post('companion/{conversation}/upload',     [CompanionUploadController::class, 'store'])->name('companion.upload');
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
@@ -139,11 +168,44 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     // Announcements
     Route::post('courses/{course}/announcements',              [AnnouncementController::class, 'store'])->name('announcements.store');
     Route::delete('courses/{course}/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+
+    // Session Hour Logs
+    Route::post('live-sessions/{liveSession}/log', [SessionLogController::class, 'store'])->name('sessions.log');
+
+    // Teacher AI Tools
+    Route::get('ai-tools',             [AiToolsController::class, 'index'])->name('ai-tools.index');
+    Route::post('ai-tools/summarise',  [AiToolsController::class, 'summarise'])->name('ai-tools.summarise');
+    Route::post('ai-tools/notes',      [AiToolsController::class, 'generateNotes'])->name('ai-tools.notes');
+    Route::post('ai-tools/study-plan', [AiToolsController::class, 'studyPlan'])->name('ai-tools.study-plan');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('dashboard',  [AdminDashboard::class, 'index'])->name('dashboard');
     Route::resource('users', AdminUserController::class);
+
+    // AI Session Reports
+    Route::get('session-reports',                            [AdminSessionReportController::class, 'index'])->name('session-reports.index');
+    Route::get('session-reports/{session}',                  [AdminSessionReportController::class, 'show'])->name('session-reports.show');
+    Route::post('session-reports/{session}/reprocess',       [AdminSessionReportController::class, 'reprocess'])->name('session-reports.reprocess');
+
+    // Teacher Payments
+    Route::get('teacher-payments',                           [TeacherPaymentController::class, 'index'])->name('teacher-payments.index');
+    Route::post('teacher-payments/{payment}/approve',        [TeacherPaymentController::class, 'approve'])->name('teacher-payments.approve');
+    Route::post('teacher-payments/{payment}/reject',         [TeacherPaymentController::class, 'reject'])->name('teacher-payments.reject');
+    Route::post('teacher-payments/{payment}/mark-paid',      [TeacherPaymentController::class, 'markPaid'])->name('teacher-payments.mark-paid');
+    Route::post('teacher-payments/rate/{teacher}',           [TeacherPaymentController::class, 'updateRate'])->name('teacher-payments.update-rate');
+
+    // Course Management
+    Route::get('courses',                                    [AdminCourseController::class, 'index'])->name('courses.index');
+    Route::patch('courses/{course}/toggle-status',           [AdminCourseController::class, 'toggleStatus'])->name('courses.toggle-status');
+    Route::delete('courses/{course}',                        [AdminCourseController::class, 'destroy'])->name('courses.destroy');
+
+    // AI Tools
+    Route::get('ai-tools',                                   [AdminAiController::class, 'index'])->name('ai-tools');
+    Route::post('ai-tools/test-prompt',                      [AdminAiController::class, 'testPrompt'])->name('ai-tools.test');
+    Route::post('ai-tools/broadcast-draft',                  [AdminAiController::class, 'broadcastDraft'])->name('ai-tools.broadcast');
+    Route::post('ai-tools/generate-description',             [AdminAiController::class, 'generateCourseDescription'])->name('ai-tools.course-desc');
+    Route::post('ai-tools/generate-quiz',                    [AdminAiController::class, 'generateQuiz'])->name('ai-tools.quiz');
 });
 
 Route::middleware('auth')->group(function () {
