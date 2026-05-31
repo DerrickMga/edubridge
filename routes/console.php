@@ -6,6 +6,7 @@ use App\Models\LiveSession;
 use App\Console\Commands\SyncZoomRecordings;
 use App\Console\Commands\RefineQuizzesCommand;
 use App\Console\Commands\IngestPastPapersCommand;
+use App\Console\Commands\IngestSyllabusesCommand;
 use App\Notifications\AssignmentDueNotification;
 use App\Notifications\LiveSessionReminderNotification;
 use Illuminate\Foundation\Inspiring;
