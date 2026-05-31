@@ -11,15 +11,15 @@ use Illuminate\Support\Facades\Log;
 
 class SessionAiService
 {
-    private string $endpoint;
     private string $apiKey;
-    private string $deployment;
+    private string $model;
+    private string $baseUrl;
 
     public function __construct()
     {
-        $this->endpoint   = rtrim(config('services.azure_ai.endpoint', ''), '/');
-        $this->apiKey     = config('services.azure_ai.key', '');
-        $this->deployment = env('AZURE_AI_DEPLOYMENT', 'gpt-4o');
+        $this->apiKey  = config('services.openai.api_key', '');
+        $this->model   = config('services.openai.companion_model', 'gpt-4o');
+        $this->baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com/v1'), '/');
     }
 
     /**
@@ -55,7 +55,7 @@ class SessionAiService
 
             // ── 2. Build AI prompt ────────────────────────────────────────
             $context = $this->buildContext($session, $transcript, $attendeesCount);
-            $aiData  = $this->callAzureAi($context, $session);
+            $aiData  = $this->callOpenAi($context, $session);
 
             // ── 3. Auto-create Quiz ───────────────────────────────────────
             $quizId = null;
@@ -113,23 +113,20 @@ class SessionAiService
         return $context;
     }
 
-    private function callAzureAi(string $context, LiveSession $session): array
+    private function callOpenAi(string $context, LiveSession $session): array
     {
-        if (empty($this->endpoint) || empty($this->apiKey)) {
-            // Return sensible stub when Azure AI is not yet configured
+        if (empty($this->apiKey)) {
+            // Return sensible stub when OpenAI is not yet configured
             return $this->stubResponse($session);
         }
 
-        $url = "{$this->endpoint}/openai/deployments/{$this->deployment}/chat/completions?api-version=2024-08-01-preview";
-
-        $response = Http::withHeaders([
-            'api-key'      => $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->post($url, [
-            'messages' => [
-                [
-                    'role'    => 'system',
-                    'content' => <<<SYSTEM
+        $response = Http::withToken($this->apiKey)
+            ->post("{$this->baseUrl}/chat/completions", [
+                'model'       => $this->model,
+                'messages'    => [
+                    [
+                        'role'    => 'system',
+                        'content' => <<<SYSTEM
 You are an EduBridge AI Session Observer. Given a lesson session context, produce a JSON object with these exact keys:
 - "summary": 2-4 sentence paragraph summarising what was taught
 - "action_items": array of 3-5 concise strings, each a clear follow-up task for students
@@ -137,18 +134,18 @@ You are an EduBridge AI Session Observer. Given a lesson session context, produc
     "question" (string), "options" (array of 4 strings), "correct_answer" (the exact correct option string), "explanation" (string)
 Respond ONLY with valid JSON, no markdown fences.
 SYSTEM
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => $context,
+                    ],
                 ],
-                [
-                    'role'    => 'user',
-                    'content' => $context,
-                ],
-            ],
-            'max_tokens'  => 1200,
-            'temperature' => 0.4,
-        ]);
+                'max_tokens'  => 1200,
+                'temperature' => 0.4,
+            ]);
 
         if ($response->failed()) {
-            throw new \RuntimeException('Azure AI call failed: ' . $response->body());
+            throw new \RuntimeException('OpenAI call failed: ' . $response->body());
         }
 
         $text = $response->json('choices.0.message.content', '{}');
@@ -160,7 +157,7 @@ SYSTEM
         $data = json_decode(trim($text), true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Azure AI returned invalid JSON: ' . $text);
+            throw new \RuntimeException('OpenAI returned invalid JSON: ' . $text);
         }
 
         return $data;
