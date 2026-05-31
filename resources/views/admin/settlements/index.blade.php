@@ -86,7 +86,8 @@
                                     <p class="text-xs font-mono text-slate-400 mt-0.5">{{ $s->reference_number }}</p>
                                 @endif
                             </td>
-                            <td class="space-y-1 min-w-[160px]">
+                            <td class="space-y-1 min-w-[180px]">
+                                <a href="{{ route('admin.settlements.show', $s) }}" class="btn btn-secondary btn-xs w-full mb-1 text-center inline-block">View Details</a>
                                 @if($s->status === 'pending')
                                 <form method="POST" action="{{ route('admin.settlements.approve', $s) }}">
                                     @csrf

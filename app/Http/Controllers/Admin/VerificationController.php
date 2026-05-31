@@ -21,9 +21,11 @@ class VerificationController extends Controller
             ->paginate(25);
 
         $counts = [
-            'pending'  => TeacherVerification::where('status', 'pending')->count(),
-            'approved' => TeacherVerification::where('status', 'approved')->count(),
-            'rejected' => TeacherVerification::where('status', 'rejected')->count(),
+            'all'                => TeacherVerification::count(),
+            'pending'            => TeacherVerification::where('status', 'pending')->count(),
+            'approved'           => TeacherVerification::where('status', 'approved')->count(),
+            'rejected'           => TeacherVerification::where('status', 'rejected')->count(),
+            'needs_resubmission' => TeacherVerification::where('status', 'needs_resubmission')->count(),
         ];
 
         return view('admin.verifications.index', compact('verifications', 'status', 'counts'));

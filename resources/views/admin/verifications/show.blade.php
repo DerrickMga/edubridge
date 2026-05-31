@@ -114,7 +114,7 @@
             {{-- Reject form --}}
             <form x-show="action === 'reject'" x-cloak method="POST" action="{{ route('admin.verifications.reject', $verification) }}" class="space-y-3 pt-1">
                 @csrf
-                <input type="hidden" name="action_type" value="rejected">
+                <input type="hidden" name="status" value="rejected">
                 <div class="form-group">
                     <label class="form-label">Reason for Rejection <span class="text-red-500">*</span></label>
                     <textarea name="admin_notes" rows="3" class="form-textarea" required placeholder="Please provide a clear reason...">{{ old('admin_notes') }}</textarea>
@@ -126,7 +126,7 @@
             {{-- Resubmit form --}}
             <form x-show="action === 'resubmit'" x-cloak method="POST" action="{{ route('admin.verifications.reject', $verification) }}" class="space-y-3 pt-1">
                 @csrf
-                <input type="hidden" name="action_type" value="needs_resubmission">
+                <input type="hidden" name="status" value="needs_resubmission">
                 <div class="form-group">
                     <label class="form-label">Instructions for Teacher <span class="text-red-500">*</span></label>
                     <textarea name="admin_notes" rows="3" class="form-textarea" required placeholder="Please re-upload a clearer photo of your ID...">{{ old('admin_notes') }}</textarea>

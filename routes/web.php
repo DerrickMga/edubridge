@@ -240,6 +240,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
 
     // Settlements
     Route::get('settlements',                                    [AdminSettlementController::class, 'index'])->name('settlements.index');
+    Route::get('settlements/reconciliation',                     [AdminSettlementController::class, 'reconciliation'])->name('settlements.reconciliation');
+    Route::get('settlements/{settlement}',                       [AdminSettlementController::class, 'show'])->name('settlements.show');
     Route::post('settlements/{settlement}/approve',              [AdminSettlementController::class, 'approve'])->name('settlements.approve');
     Route::post('settlements/{settlement}/processing',           [AdminSettlementController::class, 'markProcessing'])->name('settlements.processing');
     Route::post('settlements/{settlement}/paid',                 [AdminSettlementController::class, 'markPaid'])->name('settlements.paid');
