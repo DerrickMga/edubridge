@@ -4,9 +4,10 @@ namespace App\Console\Commands;
 use App\Models\Course;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
-use App\Services\AnthropicService;
+use App\Services\GptService;
 use App\Services\CurriculumContextService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -33,7 +34,7 @@ class RefineQuizzesCommand extends Command
     protected $description = 'Regenerate quiz questions using Claude AI + ZIMSEC syllabus PDFs';
 
     public function __construct(
-        private AnthropicService        $claude,
+        private GptService               $gpt,
         private CurriculumContextService $curriculum,
     ) {
         parent::__construct();
@@ -157,7 +158,7 @@ Format:
 ]
 PROMPT;
 
-        $response = $this->claude->chat(
+        $response = $this->gpt->chat(
             [['role' => 'user', 'content' => $prompt]],
             'You are an expert ZIMSEC curriculum specialist and exam writer. Always respond with valid JSON only.'
         );
@@ -197,21 +198,23 @@ PROMPT;
 
     private function saveQuestions(Quiz $quiz, array $questions): void
     {
-        // Remove old questions
-        $quiz->questions()->delete();
+        DB::transaction(function () use ($quiz, $questions) {
+            // Remove old questions
+            $quiz->questions()->delete();
 
-        // Insert new ones
-        foreach (array_values($questions) as $i => $q) {
-            QuizQuestion::create([
-                'quiz_id'        => $quiz->id,
-                'type'           => 'multiple_choice',
-                'question'       => $q['question'],
-                'options'        => $q['options'],
-                'correct_answer' => $q['correct_answer'],
-                'explanation'    => $q['explanation'] ?? null,
-                'points'         => 1,
-                'sort_order'     => $i + 1,
-            ]);
-        }
+            // Insert new ones
+            foreach (array_values($questions) as $i => $q) {
+                QuizQuestion::create([
+                    'quiz_id'        => $quiz->id,
+                    'type'           => 'mcq',
+                    'question'       => $q['question'],
+                    'options'        => $q['options'],
+                    'correct_answer' => $q['correct_answer'],
+                    'explanation'    => $q['explanation'] ?? null,
+                    'points'         => 1,
+                    'sort_order'     => $i + 1,
+                ]);
+            }
+        });
     }
 }
