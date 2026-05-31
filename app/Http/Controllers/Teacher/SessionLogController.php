@@ -8,6 +8,7 @@ use App\Models\LiveSession;
 use App\Models\SessionLog;
 use App\Models\TeacherPaymentItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SessionLogController extends Controller
 {
@@ -27,34 +28,38 @@ class SessionLogController extends Controller
             'notes'                   => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $log = SessionLog::create([
-            'live_session_id'         => $liveSession->id,
-            'teacher_id'              => $request->user()->id,
-            'actual_duration_minutes' => $data['actual_duration_minutes'],
-            'actual_student_count'    => $data['actual_student_count'],
-            'notes'                   => $data['notes'] ?? null,
-            'submitted_at'            => now(),
-        ]);
+        [$log, $total] = DB::transaction(function () use ($data, $liveSession, $request) {
+            $log = SessionLog::create([
+                'live_session_id'         => $liveSession->id,
+                'teacher_id'              => $request->user()->id,
+                'actual_duration_minutes' => $data['actual_duration_minutes'],
+                'actual_student_count'    => $data['actual_student_count'],
+                'notes'                   => $data['notes'] ?? null,
+                'submitted_at'            => now(),
+            ]);
 
-        // Auto-create payment item
-        $rate  = $request->user()->hourly_rate_usd ?? 15.00;
-        $hours = round($data['actual_duration_minutes'] / 60, 2);
-        $total = round($hours * $rate, 2);
+            // Auto-create payment item
+            $rate  = $request->user()->hourly_rate_usd ?? 15.00;
+            $hours = round($data['actual_duration_minutes'] / 60, 2);
+            $total = round($hours * $rate, 2);
 
-        TeacherPaymentItem::firstOrCreate(
-            ['live_session_id' => $liveSession->id],
-            [
-                'teacher_id'       => $request->user()->id,
-                'session_log_id'   => $log->id,
-                'hours_logged'     => $hours,
-                'student_count'    => $data['actual_student_count'],
-                'hourly_rate_usd'  => $rate,
-                'total_usd'        => $total,
-                'status'           => 'pending',
-            ]
-        );
+            TeacherPaymentItem::firstOrCreate(
+                ['live_session_id' => $liveSession->id],
+                [
+                    'teacher_id'       => $request->user()->id,
+                    'session_log_id'   => $log->id,
+                    'hours_logged'     => $hours,
+                    'student_count'    => $data['actual_student_count'],
+                    'hourly_rate_usd'  => $rate,
+                    'total_usd'        => $total,
+                    'status'           => 'pending',
+                ]
+            );
 
-        // Dispatch AI processing if not done yet
+            return [$log, $total];
+        });
+
+        // Dispatch AI processing if not done yet (outside transaction)
         if (! $liveSession->aiReport) {
             ProcessSessionAiReport::dispatch($liveSession)->onQueue('default');
         }

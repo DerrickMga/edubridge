@@ -13,12 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            // Add payfast to the provider enum
-            DB::statement("ALTER TABLE payments MODIFY COLUMN provider ENUM('stripe','paynow_zw','ecocash','innbucks','manual','payfast') NOT NULL DEFAULT 'stripe'");
-            // Access period chosen at checkout
-            $table->enum('access_period', ['monthly', 'termly', 'annual', 'lifetime'])
-                  ->default('lifetime')
-                  ->after('provider');
+            // SQLite uses TEXT for enums — just add the access_period column.
+            // The provider column already accepts any string value in SQLite.
+            $table->string('access_period')->default('lifetime')->after('provider');
         });
     }
 
@@ -29,7 +26,6 @@ return new class extends Migration
     {
         Schema::table('payments', function (Blueprint $table) {
             $table->dropColumn('access_period');
-            DB::statement("ALTER TABLE payments MODIFY COLUMN provider ENUM('stripe','paynow_zw','ecocash','innbucks','manual') NOT NULL DEFAULT 'stripe'");
         });
     }
 };

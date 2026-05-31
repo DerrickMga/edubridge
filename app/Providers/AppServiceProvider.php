@@ -38,5 +38,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('payments', function (Request $request) {
             return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('ai', function (Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip())
+                ->response(fn () => response()->json(['error' => 'Too many AI requests. Please wait a moment.'], 429));
+        });
     }
 }

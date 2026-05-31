@@ -111,15 +111,18 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     // Course enrollment
     Route::post('courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('courses.enroll');
 
-    // AI Companion
+    // AI Companion (AI rate limit applied to generative POST endpoints)
     Route::get('companion',                      [CompanionController::class, 'index'])->name('companion.index');
     Route::post('companion',                     [CompanionController::class, 'store'])->name('companion.store');
     Route::get('companion/{conversation}',       [CompanionController::class, 'show'])->name('companion.show');
-    Route::post('companion/{conversation}/send',       [CompanionController::class, 'send'])->name('companion.send');
-    Route::post('companion/{conversation}/study-plan', [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
-    Route::post('companion/{conversation}/notes',      [CompanionController::class, 'notes'])->name('companion.notes');
-    Route::patch('companion/{conversation}/prefs',     [CompanionController::class, 'updatePreferences'])->name('companion.prefs');
-    Route::post('companion/{conversation}/upload',     [CompanionUploadController::class, 'store'])->name('companion.upload');
+    Route::patch('companion/{conversation}/prefs', [CompanionController::class, 'updatePreferences'])->name('companion.prefs');
+    Route::post('companion/{conversation}/upload', [CompanionUploadController::class, 'store'])->name('companion.upload');
+
+    Route::middleware('throttle:ai')->group(function () {
+        Route::post('companion/{conversation}/send',       [CompanionController::class, 'send'])->name('companion.send');
+        Route::post('companion/{conversation}/study-plan', [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
+        Route::post('companion/{conversation}/notes',      [CompanionController::class, 'notes'])->name('companion.notes');
+    });
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
@@ -217,6 +220,12 @@ Route::middleware('auth')->group(function () {
     Route::get('profile',    [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Notifications
+    Route::post('notifications/read-all', function () {
+        auth()->user()->unreadNotifications->markAsRead();
+        return back();
+    })->name('notifications.read-all');
 });
 
 Route::prefix('payments')->name('payments.')->middleware(['auth', 'throttle:payments'])->group(function () {

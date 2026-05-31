@@ -48,21 +48,12 @@ class PaymentController extends Controller
         abort_if($course->status !== 'published', 404);
 
         // Already enrolled? Redirect to course
-        if (auth()->check() && $course->enrollments()->where('user_id', auth()->id())->exists()) {
+        if (auth()->check() && $course->enrollments()->where('user_id', auth()->id())->where('status', 'active')->exists()) {
             return redirect()->route('student.dashboard')
                 ->with('info', 'You are already enrolled in this course.');
         }
 
-        // TODO: Enrollment is temporarily free — skip payment for all courses
-        $course->enrollments()->syncWithoutDetaching([auth()->id() => [
-            'status'        => 'active',
-            'access_period' => 'termly',
-            'expires_at'    => now()->addMonths(3),
-        ]]);
-        return redirect()->route('student.dashboard')
-            ->with('success', 'You have been enrolled in ' . $course->title . '!');
-
-        // Build period pricing for checkout view (reached when above TODO is removed)
+        // Build period pricing for checkout view
         $zwgRate      = self::zwgRate();
         $periodPricing = collect(self::periodPrices())->map(fn($usd, $key) => [
             'key'   => $key,

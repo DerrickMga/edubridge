@@ -4,85 +4,241 @@
 
 @layer base {
     html { scroll-behavior: smooth; }
-    body { @apply text-slate-800; }
+    body { @apply text-slate-800 antialiased; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* Focus visible only for keyboard navigation */
+    :focus:not(:focus-visible) { outline: none; }
+    :focus-visible { @apply ring-2 ring-emerald-500 ring-offset-2 outline-none; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { @apply bg-slate-100; }
+    ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+    ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
 }
 
 @layer components {
-    /* ── Buttons ── */
-    .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed; }
-    .btn-primary  { @apply btn bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 px-4 py-2.5; }
-    .btn-secondary{ @apply btn bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 focus:ring-slate-400 px-4 py-2.5; }
-    .btn-danger   { @apply btn bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 px-4 py-2.5; }
-    .btn-ghost    { @apply btn text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:ring-slate-400 px-3 py-2; }
-    .btn-sm       { @apply px-3 py-1.5 text-xs; }
-    .btn-lg       { @apply px-6 py-3 text-base; }
-    .btn-icon     { @apply btn p-2 rounded-lg; }
+    /* ══════════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════════ */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 font-semibold text-sm
+               rounded-lg transition-all duration-150 cursor-pointer
+               focus:outline-none focus:ring-2 focus:ring-offset-2
+               disabled:opacity-50 disabled:cursor-not-allowed select-none;
+    }
+    .btn-primary   { @apply btn bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm hover:shadow focus:ring-emerald-500 px-4 py-2.5; }
+    .btn-secondary { @apply btn bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-300 hover:border-slate-400 shadow-sm focus:ring-slate-400 px-4 py-2.5; }
+    .btn-danger    { @apply btn bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-sm focus:ring-red-500 px-4 py-2.5; }
+    .btn-ghost     { @apply btn text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200 focus:ring-slate-400 px-3 py-2; }
+    .btn-outline   { @apply btn border border-emerald-600 text-emerald-700 hover:bg-emerald-50 active:bg-emerald-100 focus:ring-emerald-500 px-4 py-2.5; }
+    .btn-sm        { @apply !px-3 !py-1.5 !text-xs; }
+    .btn-lg        { @apply !px-6 !py-3 !text-base; }
+    .btn-icon      { @apply btn p-2 rounded-lg; }
+    .btn-icon-sm   { @apply btn p-1.5 rounded-md; }
 
-    /* ── Cards ── */
-    .card { @apply bg-white rounded-xl border border-slate-200 shadow-card; }
-    .card-hover { @apply card hover:shadow-card-hover transition-shadow duration-200; }
+    /* ══════════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════════ */
+    .card          { @apply bg-white rounded-2xl border border-slate-200/80 shadow-sm; }
+    .card-hover    { @apply card hover:shadow-md hover:-translate-y-0.5 transition-all duration-200; }
+    .card-bordered { @apply card border-2; }
+    .card-flat     { @apply bg-white rounded-2xl border border-slate-100; }
 
-    /* ── Badges ── */
-    .badge        { @apply inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full; }
-    .badge-green  { @apply badge bg-emerald-100 text-emerald-700; }
-    .badge-amber  { @apply badge bg-amber-100 text-amber-700; }
-    .badge-blue   { @apply badge bg-blue-100 text-blue-700; }
-    .badge-purple { @apply badge bg-purple-100 text-purple-700; }
-    .badge-red    { @apply badge bg-red-100 text-red-700; }
-    .badge-slate  { @apply badge bg-slate-100 text-slate-600; }
-    .badge-indigo { @apply badge bg-indigo-100 text-indigo-700; }
+    /* ══════════════════════════════════════════
+       BADGES / PILLS
+    ══════════════════════════════════════════ */
+    .badge        { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border; }
+    .badge-green  { @apply badge bg-emerald-50 text-emerald-700 border-emerald-200; }
+    .badge-amber  { @apply badge bg-amber-50 text-amber-700 border-amber-200; }
+    .badge-blue   { @apply badge bg-blue-50 text-blue-700 border-blue-200; }
+    .badge-purple { @apply badge bg-purple-50 text-purple-700 border-purple-200; }
+    .badge-red    { @apply badge bg-red-50 text-red-700 border-red-200; }
+    .badge-slate  { @apply badge bg-slate-100 text-slate-600 border-slate-200; }
+    .badge-indigo { @apply badge bg-indigo-50 text-indigo-700 border-indigo-200; }
+    .badge-teal   { @apply badge bg-teal-50 text-teal-700 border-teal-200; }
+    .badge-orange { @apply badge bg-orange-50 text-orange-700 border-orange-200; }
 
-    /* ── Forms ── */
-    .form-label   { @apply block text-sm font-medium text-slate-700; }
-    .form-input   { @apply block w-full rounded-lg border-slate-300 text-slate-900 text-sm placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500 transition-colors; }
-    .form-select  { @apply block w-full rounded-lg border-slate-300 text-slate-900 text-sm focus:border-emerald-500 focus:ring-emerald-500; }
-    .form-textarea{ @apply block w-full rounded-lg border-slate-300 text-slate-900 text-sm placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500 resize-none; }
-    .form-hint    { @apply mt-1.5 text-xs text-slate-400; }
-    .form-error   { @apply mt-1.5 text-xs text-red-600; }
-    .form-group   { @apply space-y-1.5; }
+    /* Status dots */
+    .status-dot { @apply inline-block w-2 h-2 rounded-full; }
+    .status-dot-green  { @apply status-dot bg-emerald-500; }
+    .status-dot-amber  { @apply status-dot bg-amber-500; }
+    .status-dot-red    { @apply status-dot bg-red-500; }
+    .status-dot-slate  { @apply status-dot bg-slate-400; }
+    .status-dot-blue   { @apply status-dot bg-blue-500; }
 
-    /* ── Stats ── */
-    .stat-card  { @apply card p-6; }
-    .stat-value { @apply text-3xl font-extrabold text-slate-900; }
-    .stat-label { @apply text-sm text-slate-500 mt-1; }
+    /* ══════════════════════════════════════════
+       FORMS
+    ══════════════════════════════════════════ */
+    .form-label   { @apply block text-sm font-medium text-slate-700 mb-1; }
+    .form-input   { @apply block w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm
+                           placeholder-slate-400 px-3.5 py-2.5
+                           focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none
+                           transition-all duration-150; }
+    .form-select  { @apply block w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm
+                           px-3.5 py-2.5
+                           focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none
+                           transition-all duration-150; }
+    .form-textarea { @apply block w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm
+                            placeholder-slate-400 px-3.5 py-2.5
+                            focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none
+                            transition-all duration-150 resize-none; }
+    .form-hint    { @apply mt-1.5 text-xs text-slate-400 leading-relaxed; }
+    .form-error   { @apply mt-1.5 text-xs text-red-600 font-medium; }
+    .form-group   { @apply space-y-1; }
+    .form-section { @apply card p-6 space-y-5; }
 
-    /* ── Page typography ── */
-    .page-header    { @apply mb-6; }
-    .page-title     { @apply text-2xl font-bold text-slate-900; }
-    .page-subtitle  { @apply text-slate-500 mt-1 text-sm; }
+    /* ══════════════════════════════════════════
+       STAT CARDS
+    ══════════════════════════════════════════ */
+    .stat-card     { @apply card p-6; }
+    .stat-value    { @apply text-3xl font-extrabold text-slate-900 tabular-nums; }
+    .stat-value-lg { @apply text-4xl font-black text-slate-900 tabular-nums; }
+    .stat-label    { @apply text-sm text-slate-500 mt-1 font-medium; }
+    .stat-change-up   { @apply inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full; }
+    .stat-change-down { @apply inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full; }
+
+    /* ══════════════════════════════════════════
+       PAGE TYPOGRAPHY
+    ══════════════════════════════════════════ */
+    .page-header    { @apply mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4; }
+    .page-title     { @apply text-2xl font-bold text-slate-900 tracking-tight; }
+    .page-subtitle  { @apply text-slate-500 mt-1 text-sm leading-relaxed; }
     .section-title  { @apply text-lg font-semibold text-slate-800; }
     .section-label  { @apply text-xs font-bold text-slate-400 uppercase tracking-widest; }
+    .page-title-lg  { @apply text-3xl font-extrabold text-slate-900 tracking-tight; }
 
-    /* ── Table ── */
-    .data-table { @apply w-full text-sm text-slate-600; }
-    .data-table thead th { @apply px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200; }
-    .data-table tbody tr { @apply border-b border-slate-100 hover:bg-slate-50 transition-colors; }
-    .data-table tbody td { @apply px-4 py-3; }
+    /* ══════════════════════════════════════════
+       DATA TABLE
+    ══════════════════════════════════════════ */
+    .data-table { @apply w-full text-sm text-slate-700 border-collapse; }
+    .data-table thead { @apply bg-slate-50 border-b border-slate-200; }
+    .data-table thead th { @apply px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider; }
+    .data-table tbody tr { @apply border-b border-slate-100 hover:bg-slate-50/70 transition-colors; }
+    .data-table tbody td { @apply px-4 py-3.5 align-middle; }
+    .data-table tbody tr:last-child { @apply border-0; }
 
-    /* ── Empty state ── */
-    .empty-state { @apply text-center py-16 px-6; }
-    .empty-state-icon { @apply text-5xl mb-4 block; }
+    /* ══════════════════════════════════════════
+       EMPTY STATE
+    ══════════════════════════════════════════ */
+    .empty-state       { @apply text-center py-20 px-6; }
+    .empty-state-icon  { @apply text-5xl mb-4 block; }
     .empty-state-title { @apply text-lg font-semibold text-slate-700 mb-2; }
-    .empty-state-text { @apply text-sm text-slate-400 max-w-xs mx-auto mb-6; }
+    .empty-state-text  { @apply text-sm text-slate-400 max-w-xs mx-auto mb-6 leading-relaxed; }
 
-    /* ── Progress bar ── */
-    .progress-bar { @apply h-2 bg-slate-100 rounded-full overflow-hidden; }
-    .progress-fill { @apply h-full bg-emerald-500 rounded-full transition-all duration-700; }
+    /* ══════════════════════════════════════════
+       PROGRESS
+    ══════════════════════════════════════════ */
+    .progress-bar     { @apply h-2 bg-slate-100 rounded-full overflow-hidden; }
+    .progress-bar-sm  { @apply h-1.5 bg-slate-100 rounded-full overflow-hidden; }
+    .progress-bar-lg  { @apply h-3 bg-slate-100 rounded-full overflow-hidden; }
+    .progress-fill    { @apply h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-700 ease-out; }
+    .progress-fill-blue { @apply h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-700 ease-out; }
+    .progress-fill-purple { @apply h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-700 ease-out; }
 
-    /* ── Alert ── */
-    .alert        { @apply flex items-start gap-3 rounded-xl px-4 py-3.5 text-sm; }
-    .alert-success{ @apply alert bg-emerald-50 border border-emerald-200 text-emerald-800; }
-    .alert-error  { @apply alert bg-red-50 border border-red-200 text-red-800; }
-    .alert-info   { @apply alert bg-blue-50 border border-blue-200 text-blue-800; }
-    .alert-warn   { @apply alert bg-amber-50 border border-amber-200 text-amber-800; }
+    /* ══════════════════════════════════════════
+       ALERTS
+    ══════════════════════════════════════════ */
+    .alert         { @apply flex items-start gap-3 rounded-xl px-4 py-3.5 text-sm; }
+    .alert-success { @apply alert bg-emerald-50 border border-emerald-200 text-emerald-800; }
+    .alert-error   { @apply alert bg-red-50 border border-red-200 text-red-800; }
+    .alert-info    { @apply alert bg-blue-50 border border-blue-200 text-blue-800; }
+    .alert-warn    { @apply alert bg-amber-50 border border-amber-200 text-amber-800; }
 
-    /* ── Subject colour map ── */
-    .subject-maths      { @apply bg-blue-100 text-blue-700; }
-    .subject-english    { @apply bg-purple-100 text-purple-700; }
-    .subject-science    { @apply bg-emerald-100 text-emerald-700; }
-    .subject-history    { @apply bg-amber-100 text-amber-700; }
-    .subject-geography  { @apply bg-teal-100 text-teal-700; }
-    .subject-business   { @apply bg-orange-100 text-orange-700; }
-    .subject-computer   { @apply bg-indigo-100 text-indigo-700; }
-    .subject-other      { @apply bg-slate-100 text-slate-600; }
+    /* ══════════════════════════════════════════
+       AVATAR
+    ══════════════════════════════════════════ */
+    .avatar    { @apply flex items-center justify-center rounded-full font-bold uppercase flex-shrink-0; }
+    .avatar-sm { @apply avatar w-8 h-8 text-xs; }
+    .avatar-md { @apply avatar w-10 h-10 text-sm; }
+    .avatar-lg { @apply avatar w-14 h-14 text-xl; }
+    .avatar-emerald { @apply bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-sm; }
+    .avatar-blue    { @apply bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-sm; }
+    .avatar-purple  { @apply bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-sm; }
+    .avatar-amber   { @apply bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm; }
+
+    /* ══════════════════════════════════════════
+       DIVIDERS
+    ══════════════════════════════════════════ */
+    .divider { @apply border-t border-slate-100 my-4; }
+    .divider-dashed { @apply border-t border-dashed border-slate-200 my-4; }
+
+    /* ══════════════════════════════════════════
+       SUBJECT COLOUR MAP
+    ══════════════════════════════════════════ */
+    .subject-maths      { @apply bg-blue-50 text-blue-700 border-blue-200; }
+    .subject-english    { @apply bg-purple-50 text-purple-700 border-purple-200; }
+    .subject-science    { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
+    .subject-history    { @apply bg-amber-50 text-amber-700 border-amber-200; }
+    .subject-geography  { @apply bg-teal-50 text-teal-700 border-teal-200; }
+    .subject-business   { @apply bg-orange-50 text-orange-700 border-orange-200; }
+    .subject-computer   { @apply bg-indigo-50 text-indigo-700 border-indigo-200; }
+    .subject-other      { @apply bg-slate-100 text-slate-600 border-slate-200; }
+
+    /* ══════════════════════════════════════════
+       GRADIENT HELPERS
+    ══════════════════════════════════════════ */
+    .gradient-emerald { background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%); }
+    .gradient-blue    { background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%); }
+    .gradient-purple  { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%); }
+    .gradient-amber   { background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%); }
+    .gradient-hero    { background: linear-gradient(160deg, #064e3b 0%, #065f46 40%, #0f766e 100%); }
+
+    /* ══════════════════════════════════════════
+       SIDEBAR ACTIVE INDICATOR
+    ══════════════════════════════════════════ */
+    .sidebar-item-active {
+        @apply bg-emerald-50 text-emerald-700 font-semibold;
+        position: relative;
+    }
+    .sidebar-item-active::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        background: #059669;
+        border-radius: 0 3px 3px 0;
+    }
+
+    /* ══════════════════════════════════════════
+       MISC UTILITIES
+    ══════════════════════════════════════════ */
+    .truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .glass { @apply bg-white/80 backdrop-blur-md border border-white/60; }
+    .glass-dark { background: rgba(2, 12, 27, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+
+    /* ══════════════════════════════════════════
+       SKELETON LOADING
+    ══════════════════════════════════════════ */
+    .skeleton { @apply bg-slate-200 rounded-lg animate-pulse; }
+    .skeleton-text { @apply skeleton h-4 w-full mb-2; }
+    .skeleton-title { @apply skeleton h-6 w-2/3 mb-3; }
+    .skeleton-avatar { @apply skeleton w-10 h-10 rounded-full; }
+
+    /* ══════════════════════════════════════════
+       COURSE CARD
+    ══════════════════════════════════════════ */
+    .course-card {
+        @apply card-hover flex flex-col overflow-hidden cursor-pointer;
+    }
+    .course-card-thumb {
+        @apply aspect-video bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 relative overflow-hidden;
+    }
+    .course-card-body { @apply flex-1 p-5 flex flex-col; }
+    .course-card-footer { @apply px-5 pb-4 pt-0 flex items-center justify-between border-t border-slate-100 mt-auto; }
 }
