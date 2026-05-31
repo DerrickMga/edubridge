@@ -73,17 +73,17 @@
                     ['selfie_with_id',    'Selfie Holding Your ID',         false, 'Hold your ID next to your face'],
                 ] as [$field, $label, $required, $hint])
                 <div class="form-group" x-data="{ name: '{{ $verification?->$field ? 'Current file on record' : '' }}' }">
-                    <label class="form-label">{{ $label }} @if($required)<span class="text-red-500">*</span>@endif</label>
+                    <label class="form-label" for="file_{{ $field }}">{{ $label }} @if($required)<span class="text-red-500">*</span>@endif</label>
                     @if($verification?->$field)
                         <div class="flex items-center gap-2 mb-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                             File submitted — upload a new file to replace it
                         </div>
                     @endif
-                    <label class="flex items-center gap-3 border-2 border-dashed border-slate-300 hover:border-emerald-400 rounded-xl px-4 py-4 cursor-pointer transition-colors group">
+                    <label for="file_{{ $field }}" class="flex items-center gap-3 border-2 border-dashed border-slate-300 hover:border-emerald-400 rounded-xl px-4 py-4 cursor-pointer transition-colors group">
                         <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
                         <span class="text-sm text-slate-500 group-hover:text-emerald-600" x-text="name || 'Click to upload file'"></span>
-                        <input type="file" name="{{ $field }}" class="sr-only" @required($required && !$verification?->$field) accept=".jpg,.jpeg,.png,.pdf"
+                        <input type="file" id="file_{{ $field }}" name="{{ $field }}" class="sr-only" @required($required && !$verification?->$field) accept=".jpg,.jpeg,.png,.pdf"
                                @change="name = $event.target.files[0]?.name ?? ''">
                     </label>
                     <p class="form-hint">{{ $hint }} · JPG, PNG or PDF · Max 5 MB</p>
@@ -103,28 +103,28 @@
                     <p class="section-label pt-1">Bank Transfer (USD)</p>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div class="form-group">
-                            <label class="form-label text-xs">Bank Name</label>
-                            <input type="text" name="bank_name" value="{{ old('bank_name', $verification?->bank_name) }}" placeholder="CBZ Bank" class="form-input">
+                            <label class="form-label text-xs" for="bank_name">Bank Name</label>
+                            <input type="text" id="bank_name" name="bank_name" value="{{ old('bank_name', $verification?->bank_name) }}" placeholder="CBZ Bank" class="form-input">
                         </div>
                         <div class="form-group">
-                            <label class="form-label text-xs">Account Number</label>
-                            <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $verification?->bank_account_number) }}" placeholder="0012345678" class="form-input">
+                            <label class="form-label text-xs" for="bank_account_number">Account Number</label>
+                            <input type="text" id="bank_account_number" name="bank_account_number" value="{{ old('bank_account_number', $verification?->bank_account_number) }}" placeholder="0012345678" class="form-input">
                         </div>
                         <div class="form-group">
-                            <label class="form-label text-xs">Branch Code</label>
-                            <input type="text" name="bank_branch_code" value="{{ old('bank_branch_code', $verification?->bank_branch_code) }}" placeholder="060165" class="form-input">
+                            <label class="form-label text-xs" for="bank_branch_code">Branch Code</label>
+                            <input type="text" id="bank_branch_code" name="bank_branch_code" value="{{ old('bank_branch_code', $verification?->bank_branch_code) }}" placeholder="060165" class="form-input">
                         </div>
                     </div>
 
                     <p class="section-label pt-1">Mobile Money (ZWG)</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="form-group">
-                            <label class="form-label text-xs">EcoCash Number</label>
-                            <input type="text" name="ecocash_number" value="{{ old('ecocash_number', $verification?->ecocash_number) }}" placeholder="0771234567" class="form-input">
+                            <label class="form-label text-xs" for="ecocash_number">EcoCash Number</label>
+                            <input type="text" id="ecocash_number" name="ecocash_number" value="{{ old('ecocash_number', $verification?->ecocash_number) }}" placeholder="0771234567" class="form-input">
                         </div>
                         <div class="form-group">
-                            <label class="form-label text-xs">InnBucks Number</label>
-                            <input type="text" name="innbucks_number" value="{{ old('innbucks_number', $verification?->innbucks_number) }}" placeholder="0781234567" class="form-input">
+                            <label class="form-label text-xs" for="innbucks_number">InnBucks Number</label>
+                            <input type="text" id="innbucks_number" name="innbucks_number" value="{{ old('innbucks_number', $verification?->innbucks_number) }}" placeholder="0781234567" class="form-input">
                         </div>
                     </div>
                 </div>
