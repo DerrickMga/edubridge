@@ -472,17 +472,17 @@
                                                         <template x-if="day.youtube_results && day.youtube_results.length">
                                                             <div>
                                                                 <p class="text-xs font-bold text-gray-500 mb-1.5">🎬 Videos</p>
-                                                                <div class="flex flex-wrap gap-2">
-                                                                    <template x-for="yg in day.youtube_results">
-                                                                        <template x-for="vid in (yg.videos ?? [])">
+                                                                <template x-for="yg in day.youtube_results" :key="yg.query">
+                                                                    <div class="flex flex-wrap gap-2 mb-1">
+                                                                        <template x-for="vid in (yg.videos ?? [])" :key="vid.videoId">
                                                                             <a :href="vid.url" target="_blank" rel="noopener"
                                                                                class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1 hover:border-red-300 transition-colors">
                                                                                 <img :src="vid.thumbnail" class="w-10 h-7 object-cover rounded" :alt="vid.title">
                                                                                 <span class="text-xs text-gray-700 line-clamp-1 max-w-32" x-text="vid.title"></span>
                                                                             </a>
                                                                         </template>
-                                                                    </template>
-                                                                </div>
+                                                                    </div>
+                                                                </template>
                                                             </div>
                                                         </template>
                                                     </div>
