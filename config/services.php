@@ -35,6 +35,13 @@ return [
         'base_url'         => 'https://api.openai.com/v1',
     ],
 
+    'gemini' => [
+        // API key from Google AI Studio: https://aistudio.google.com/app/apikey
+        // (NOT the same as GOOGLE_API_KEY — that is for YouTube/Calendar APIs)
+        'api_key' => env('GEMINI_API_KEY'),
+        'model'   => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
+
     'whatsapp' => [
         'token'           => env('WHATSAPP_TOKEN'),
         'verify_token'    => env('WHATSAPP_VERIFY_TOKEN'),

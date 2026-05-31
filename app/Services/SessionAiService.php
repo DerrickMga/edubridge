@@ -15,7 +15,7 @@ class SessionAiService
     private string $model;
     private string $baseUrl;
 
-    public function __construct()
+    public function __construct(private readonly GeminiService $gemini)
     {
         $this->apiKey  = config('services.openai.api_key', '');
         $this->model   = config('services.openai.companion_model', 'gpt-4o');
@@ -23,11 +23,12 @@ class SessionAiService
     }
 
     /**
-     * Process a completed live session:
-     * 1. Fetch Zoom transcript (if available)
-     * 2. Call Azure AI to summarise, extract action items, generate quiz
-     * 3. Auto-create a Quiz + QuizQuestions in the DB
-     * 4. Persist the SessionAiReport
+     * Process a completed live session using a dual-AI pipeline:
+     * 1. Fetch Zoom transcript / session metadata
+     * 2. Gemini note-taker: deep structured notes from raw context (first pass)
+     * 3. GPT-4o validator: validates Gemini notes → structured report JSON (second pass)
+     * 4. Auto-create a Quiz + QuizQuestions in the DB
+     * 5. Persist the SessionAiReport (including raw Gemini notes)
      *
      * Returns the SessionAiReport model.
      */
@@ -53,11 +54,28 @@ class SessionAiService
                 ? $zoomParticipants
                 : $session->attendances()->count();
 
-            // ── 2. Build AI prompt ────────────────────────────────────────
+            // Build base context from session metadata + transcript
             $context = $this->buildContext($session, $transcript, $attendeesCount);
-            $aiData  = $this->callOpenAi($context, $session);
 
-            // ── 3. Auto-create Quiz ───────────────────────────────────────
+            // ── 2. Gemini note-taker (first pass) ────────────────────────
+            // Gemini processes the full raw context and produces detailed
+            // structured notes. GPT-4o then validates these notes and produces
+            // the final structured JSON output.
+            $geminiNotes = null;
+            if ($this->gemini->isConfigured()) {
+                $geminiNotes = $this->gemini->takeNotes($context) ?: null;
+            }
+
+            // ── 3. Build enriched context for GPT-4o ─────────────────────
+            $enrichedContext = $context;
+            if ($geminiNotes) {
+                $enrichedContext .= "\n\n---\n## Pre-processed Notes (by Gemini AI Observer):\n" . $geminiNotes;
+            }
+
+            // ── 4. GPT-4o validation + structured output ──────────────────
+            $aiData  = $this->callOpenAi($enrichedContext, $session);
+
+            // ── 5. Auto-create Quiz ───────────────────────────────────────
             $quizId = null;
             if (! empty($aiData['quiz_questions'])) {
                 $quizId = $this->createQuiz($session, $aiData['quiz_questions']);
@@ -70,6 +88,7 @@ class SessionAiService
                 'summary'             => $aiData['summary'] ?? null,
                 'action_items'        => $aiData['action_items'] ?? [],
                 'transcript_excerpt'  => $transcript ? mb_substr($transcript, 0, 2000) : null,
+                'gemini_notes'        => $geminiNotes,
                 'error'               => null,
                 'processed_at'        => now(),
             ])->save();
@@ -127,11 +146,15 @@ class SessionAiService
                     [
                         'role'    => 'system',
                         'content' => <<<SYSTEM
-You are an EduBridge AI Session Observer. Given a lesson session context, produce a JSON object with these exact keys:
-- "summary": 2-4 sentence paragraph summarising what was taught
+You are an EduBridge AI Session Validator. You will receive a live teaching session context, optionally enriched with pre-processed notes from a Gemini AI Observer.
+
+Your job is to validate and structure the information into a final report. Produce a JSON object with these exact keys:
+- "summary": 2-4 sentence paragraph summarising what was taught (synthesise from Gemini notes if present)
 - "action_items": array of 3-5 concise strings, each a clear follow-up task for students
 - "quiz_questions": array of 5 objects, each with:
     "question" (string), "options" (array of 4 strings), "correct_answer" (the exact correct option string), "explanation" (string)
+
+If Gemini notes are present, use them to improve accuracy and depth. Validate that the summary and quiz reflect the actual content taught.
 Respond ONLY with valid JSON, no markdown fences.
 SYSTEM
                     ],

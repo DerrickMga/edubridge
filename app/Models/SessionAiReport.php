@@ -9,7 +9,7 @@ class SessionAiReport extends Model
     protected $fillable = [
         'live_session_id', 'quiz_id', 'attendees_count',
         'summary', 'action_items', 'transcript_excerpt',
-        'error', 'processed_at',
+        'gemini_notes', 'error', 'processed_at',
     ];
 
     protected $casts = [
