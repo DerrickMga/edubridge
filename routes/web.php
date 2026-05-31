@@ -231,9 +231,10 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('transactions', [TeacherTransactionController::class, 'index'])->name('transactions.index');
 
     // Equipment Requirements & Loans
-    Route::get('equipment',              [TeacherEquipmentController::class, 'index'])->name('equipment.index');
-    Route::post('equipment/profile',     [TeacherEquipmentController::class, 'saveProfile'])->name('equipment.save-profile');
-    Route::post('equipment/loan',        [TeacherEquipmentController::class, 'applyForLoan'])->name('equipment.apply-loan');
+    Route::get('equipment',                                    [TeacherEquipmentController::class, 'index'])->name('equipment.index');
+    Route::post('equipment/profile',                           [TeacherEquipmentController::class, 'saveProfile'])->name('equipment.save-profile');
+    Route::post('equipment/loan',                              [TeacherEquipmentController::class, 'applyForLoan'])->name('equipment.apply-loan');
+    Route::get('equipment/{loan}/documents/{type}',            [TeacherEquipmentController::class, 'downloadDocument'])->name('equipment.download-doc');
 
     // Teacher AI Tools
     Route::get('ai-tools',             [AiToolsController::class, 'index'])->name('ai-tools.index');
@@ -291,6 +292,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::get('equipment',                                      [AdminEquipmentController::class, 'index'])->name('equipment.index');
     Route::get('equipment/profiles',                             [AdminEquipmentController::class, 'profiles'])->name('equipment.profiles');
     Route::get('equipment/{loan}',                               [AdminEquipmentController::class, 'show'])->name('equipment.show');
+    Route::get('equipment/{loan}/documents/{type}',              [AdminEquipmentController::class, 'downloadDocument'])->name('equipment.download-doc');
     Route::post('equipment/{loan}/under-review',                 [AdminEquipmentController::class, 'markUnderReview'])->name('equipment.under-review');
     Route::post('equipment/{loan}/approve',                      [AdminEquipmentController::class, 'approve'])->name('equipment.approve');
     Route::post('equipment/{loan}/disburse',                     [AdminEquipmentController::class, 'disburse'])->name('equipment.disburse');

@@ -60,6 +60,25 @@ class EquipmentController extends Controller
     }
 
     /**
+     * Securely download a private document attached to a loan application.
+     */
+    public function downloadDocument(EquipmentLoanApplication $loan, string $type)
+    {
+        $paths = [
+            'income'     => $loan->income_proof_path,
+            'address'    => $loan->address_proof_path,
+            'quotation'  => $loan->quotation_path,
+        ];
+
+        abort_if(! isset($paths[$type]) || ! $paths[$type], 404);
+
+        $fullPath = storage_path('app/private/' . $paths[$type]);
+        abort_if(! file_exists($fullPath), 404);
+
+        return response()->download($fullPath, basename($paths[$type]));
+    }
+
+    /**
      * Mark application as under_review.
      */
     public function markUnderReview(EquipmentLoanApplication $loan)

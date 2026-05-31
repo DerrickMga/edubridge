@@ -287,7 +287,7 @@
                         <p class="text-sm text-slate-500">EduBridge offers teachers interest-free equipment loans repaid via monthly deductions from your settlement earnings. Typical processing time: 3–5 business days.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('teacher.equipment.apply-loan') }}" class="space-y-6">
+                    <form method="POST" action="{{ route('teacher.equipment.apply-loan') }}" enctype="multipart/form-data" class="space-y-6">
                         @csrf
 
                         {{-- Items --}}
@@ -361,6 +361,76 @@
                             <textarea name="employment_context" rows="2" class="form-textarea" placeholder="How many courses do you teach? How many students? What are your expected monthly earnings on EduBridge?">{{ old('employment_context') }}</textarea>
                         </div>
 
+                        {{-- Supporting Documents ─────────────────────────────────── --}}
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200">
+                                <h3 class="font-semibold text-sm text-slate-700">Supporting Documents <span class="text-red-500">*</span></h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Required to verify your identity and ability to repay. Accepted: PDF, JPG, PNG — max 10 MB each. Files are stored securely and never shared outside EduBridge.</p>
+                            </div>
+                            <div class="p-5 space-y-5">
+
+                                {{-- Proof of Income --}}
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Proof of Income <span class="text-red-500">*</span>
+                                        <span class="ml-1 text-xs font-normal text-slate-400">— payslip, bank statement, or employer letter</span>
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <label class="flex-1 cursor-pointer border-2 border-dashed border-slate-300 hover:border-emerald-400 rounded-xl p-4 text-center transition-colors group has-[:focus]:border-emerald-500">
+                                            <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+                                            <p class="text-sm text-slate-500 group-hover:text-emerald-600" id="income-label">Click to upload</p>
+                                            <p class="text-xs text-slate-400">PDF, JPG or PNG · max 10 MB</p>
+                                            <input type="file" name="income_proof" accept=".pdf,.jpg,.jpeg,.png" required class="sr-only"
+                                                onchange="document.getElementById('income-label').textContent = this.files[0]?.name ?? 'Click to upload'">
+                                        </label>
+                                    </div>
+                                    @error('income_proof') <p class="form-error mt-1">{{ $message }}</p> @enderror
+                                </div>
+
+                                {{-- Proof of Address --}}
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Proof of Address <span class="text-red-500">*</span>
+                                        <span class="ml-1 text-xs font-normal text-slate-400">— utility bill, bank letter, or council tax statement</span>
+                                    </label>
+                                    <label class="cursor-pointer border-2 border-dashed border-slate-300 hover:border-emerald-400 rounded-xl p-4 text-center transition-colors block group has-[:focus]:border-emerald-500">
+                                        <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+                                        <p class="text-sm text-slate-500 group-hover:text-emerald-600" id="address-label">Click to upload</p>
+                                        <p class="text-xs text-slate-400">PDF, JPG or PNG · max 10 MB</p>
+                                        <input type="file" name="address_proof" accept=".pdf,.jpg,.jpeg,.png" required class="sr-only"
+                                            onchange="document.getElementById('address-label').textContent = this.files[0]?.name ?? 'Click to upload'">
+                                    </label>
+                                    @error('address_proof') <p class="form-error mt-1">{{ $message }}</p> @enderror
+                                </div>
+
+                                {{-- Alternative Quotation (optional) --}}
+                                <div class="border-t border-slate-100 pt-5 space-y-4">
+                                    <div>
+                                        <p class="font-medium text-sm text-slate-700">Found a cheaper supplier? <span class="font-normal text-slate-400">(optional)</span></p>
+                                        <p class="text-xs text-slate-500 mt-0.5">If you have a quotation from a supplier at a lower price than our estimates, upload it here. We'll use it to approve the most competitive amount.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Upload Quotation</label>
+                                        <label class="cursor-pointer border-2 border-dashed border-slate-200 hover:border-violet-300 rounded-xl p-4 text-center transition-colors block group has-[:focus]:border-violet-500">
+                                            <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 group-hover:text-violet-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+                                            <p class="text-sm text-slate-500 group-hover:text-violet-600" id="quotation-label">Click to upload quotation</p>
+                                            <p class="text-xs text-slate-400">PDF, JPG or PNG · max 10 MB</p>
+                                            <input type="file" name="quotation" accept=".pdf,.jpg,.jpeg,.png" class="sr-only"
+                                                onchange="document.getElementById('quotation-label').textContent = this.files[0]?.name ?? 'Click to upload quotation'">
+                                        </label>
+                                        @error('quotation') <p class="form-error mt-1">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Quotation Notes</label>
+                                        <textarea name="quotation_notes" rows="2" class="form-textarea" placeholder="Supplier name, item specifications, delivery time, any conditions…">{{ old('quotation_notes') }}</textarea>
+                                        @error('quotation_notes') <p class="form-error">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        {{-- End Supporting Documents --}}
+
                         <button type="submit" class="btn btn-primary">Submit Loan Application</button>
                     </form>
                 </div>
@@ -398,6 +468,33 @@
                         @if($loan->admin_notes)
                         <p class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">Admin note: {{ $loan->admin_notes }}</p>
                         @endif
+                        {{-- Document links --}}
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            @if($loan->income_proof_path)
+                            <a href="{{ route('teacher.equipment.download-doc', [$loan, 'income']) }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 py-1.5 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                Income Proof
+                            </a>
+                            @endif
+                            @if($loan->address_proof_path)
+                            <a href="{{ route('teacher.equipment.download-doc', [$loan, 'address']) }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 py-1.5 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                Address Proof
+                            </a>
+                            @endif
+                            @if($loan->quotation_path)
+                            <a href="{{ route('teacher.equipment.download-doc', [$loan, 'quotation']) }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 text-xs bg-violet-50 hover:bg-violet-100 text-violet-600 rounded-lg px-3 py-1.5 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                My Quotation
+                            </a>
+                            @if($loan->quotation_notes)
+                            <p class="w-full text-xs text-violet-600 pl-1">{{ $loan->quotation_notes }}</p>
+                            @endif
+                            @endif
+                        </div>
                     </div>
                     @endforeach
                 </div>

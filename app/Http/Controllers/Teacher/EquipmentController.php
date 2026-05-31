@@ -69,12 +69,55 @@ class EquipmentController extends Controller
             'repayment_period_months'=> ['required', 'integer', 'in:3,6,9,12,18,24'],
             'employment_context'     => ['nullable', 'string', 'max:800'],
             'teacher_notes'          => ['nullable', 'string', 'max:500'],
+            // Supporting documents
+            'income_proof'           => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'address_proof'          => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'quotation'              => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'quotation_notes'        => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $data['teacher_id'] = $request->user()->id;
+        $userId = $request->user()->id;
+        $baseDir = "equipment-docs/{$userId}";
+
+        // Store documents privately (not publicly accessible)
+        $data['income_proof_path']  = $request->file('income_proof')
+            ->store("{$baseDir}/income", 'private');
+        $data['address_proof_path'] = $request->file('address_proof')
+            ->store("{$baseDir}/address", 'private');
+
+        if ($request->hasFile('quotation')) {
+            $data['quotation_path'] = $request->file('quotation')
+                ->store("{$baseDir}/quotations", 'private');
+        }
+
+        // Remove raw file keys — only paths stored in DB
+        unset($data['income_proof'], $data['address_proof'], $data['quotation']);
+
+        $data['teacher_id'] = $userId;
 
         EquipmentLoanApplication::create($data);
 
-        return back()->with('success', 'Your loan application has been submitted. We will review it within 3–5 business days.');
+        return back()->with('success', 'Your loan application has been submitted with supporting documents. We will review it within 3–5 business days.');
+    }
+
+    /**
+     * Download a private document attached to one of the teacher's own loan applications.
+     */
+    public function downloadDocument(EquipmentLoanApplication $loan, string $type)
+    {
+        abort_if($loan->teacher_id !== auth()->id(), 403);
+
+        $paths = [
+            'income'     => $loan->income_proof_path,
+            'address'    => $loan->address_proof_path,
+            'quotation'  => $loan->quotation_path,
+        ];
+
+        abort_if(! isset($paths[$type]) || ! $paths[$type], 404);
+
+        return response()->download(
+            storage_path('app/private/' . $paths[$type]),
+            basename($paths[$type])
+        );
     }
 }

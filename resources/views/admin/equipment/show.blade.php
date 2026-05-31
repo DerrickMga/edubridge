@@ -114,6 +114,60 @@
                 <p class="text-sm text-slate-700 bg-slate-50 rounded-xl px-3 py-2 leading-relaxed">{{ $loan->teacher_notes }}</p>
             </div>
             @endif
+
+            {{-- Supporting Documents ─────────────────────────────────── --}}
+            <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100">
+                    <p class="font-semibold text-sm text-slate-700">Supporting Documents</p>
+                </div>
+                <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {{-- Income Proof --}}
+                    <div class="border rounded-xl p-3 {{ $loan->income_proof_path ? 'border-emerald-200 bg-emerald-50' : 'border-red-100 bg-red-50' }}">
+                        <p class="text-xs font-semibold {{ $loan->income_proof_path ? 'text-emerald-700' : 'text-red-600' }} mb-1">Proof of Income</p>
+                        @if($loan->income_proof_path)
+                        <a href="{{ route('admin.equipment.download-doc', [$loan, 'income']) }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 text-xs text-emerald-700 underline hover:no-underline">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                            Download
+                        </a>
+                        <p class="text-xs text-emerald-600 mt-0.5">{{ basename($loan->income_proof_path) }}</p>
+                        @else
+                        <p class="text-xs text-red-500">Not uploaded</p>
+                        @endif
+                    </div>
+                    {{-- Address Proof --}}
+                    <div class="border rounded-xl p-3 {{ $loan->address_proof_path ? 'border-emerald-200 bg-emerald-50' : 'border-red-100 bg-red-50' }}">
+                        <p class="text-xs font-semibold {{ $loan->address_proof_path ? 'text-emerald-700' : 'text-red-600' }} mb-1">Proof of Address</p>
+                        @if($loan->address_proof_path)
+                        <a href="{{ route('admin.equipment.download-doc', [$loan, 'address']) }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 text-xs text-emerald-700 underline hover:no-underline">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                            Download
+                        </a>
+                        <p class="text-xs text-emerald-600 mt-0.5">{{ basename($loan->address_proof_path) }}</p>
+                        @else
+                        <p class="text-xs text-red-500">Not uploaded</p>
+                        @endif
+                    </div>
+                    {{-- Quotation (optional) --}}
+                    <div class="border rounded-xl p-3 {{ $loan->quotation_path ? 'border-violet-200 bg-violet-50' : 'border-slate-100 bg-slate-50' }}">
+                        <p class="text-xs font-semibold {{ $loan->quotation_path ? 'text-violet-700' : 'text-slate-400' }} mb-1">Alternative Quotation</p>
+                        @if($loan->quotation_path)
+                        <a href="{{ route('admin.equipment.download-doc', [$loan, 'quotation']) }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 text-xs text-violet-700 underline hover:no-underline">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                            Download
+                        </a>
+                        <p class="text-xs text-violet-600 mt-0.5">{{ basename($loan->quotation_path) }}</p>
+                        @if($loan->quotation_notes)
+                        <p class="text-xs text-violet-700 mt-1 leading-relaxed italic">{{ $loan->quotation_notes }}</p>
+                        @endif
+                        @else
+                        <p class="text-xs text-slate-400">None provided</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- Approved details (if approved or later) --}}
