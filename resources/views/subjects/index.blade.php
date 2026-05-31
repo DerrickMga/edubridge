@@ -131,14 +131,23 @@
 
 {{-- Footer --}}
 <footer class="border-t border-slate-200 bg-white mt-16 py-8">
-    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-        <div class="font-bold text-slate-800">EduBridge</div>
-        <div class="flex gap-6">
-            <a href="{{ route('curriculum.guide') }}" class="hover:text-slate-600">Curriculum Guide</a>
-            <a href="{{ route('courses.index') }}" class="hover:text-slate-600">All Courses</a>
-            <a href="{{ route('about') }}" class="hover:text-slate-600">About</a>
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-400 mb-4">
+            <div class="font-bold text-slate-800">EduBridge</div>
+            <div class="flex flex-wrap gap-5 justify-center">
+                <a href="{{ route('curriculum.guide') }}" class="hover:text-slate-600">Curriculum Guide</a>
+                <a href="{{ route('courses.index') }}" class="hover:text-slate-600">All Courses</a>
+                <a href="{{ route('about') }}" class="hover:text-slate-600">About</a>
+            </div>
+            <div>&copy; {{ date('Y') }} EduBridge &middot; <a href="https://www.kmgvitallinks.co.uk" target="_blank" rel="noopener" class="hover:text-slate-600 underline">KMG Vital Links</a></div>
         </div>
-        <div>&copy; {{ date('Y') }} EduBridge · KMG Vital Links</div>
+        <div class="flex flex-wrap gap-4 justify-center text-xs text-slate-400 border-t border-slate-100 pt-4">
+            <a href="{{ route('terms') }}" class="hover:text-slate-600">Terms of Service</a>
+            <a href="{{ route('privacy') }}" class="hover:text-slate-600">Privacy Policy</a>
+            <a href="{{ route('refund') }}" class="hover:text-slate-600">Refund Policy</a>
+            <a href="{{ route('cookies') }}" class="hover:text-slate-600">Cookie Policy</a>
+            <a href="{{ route('acceptable-use') }}" class="hover:text-slate-600">Acceptable Use</a>
+        </div>
     </div>
 </footer>
 </body>

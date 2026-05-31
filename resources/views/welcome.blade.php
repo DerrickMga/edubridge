@@ -148,7 +148,7 @@
 {{-- Footer --}}
 <footer class="bg-slate-900 text-slate-400 py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
-        <div class="grid md:grid-cols-4 gap-8 mb-10">
+        <div class="grid sm:grid-cols-2 md:grid-cols-5 gap-8 mb-10">
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
@@ -180,9 +180,19 @@
                     <li><a href="{{ route('register') }}" class="hover:text-white">Register Free</a></li>
                 </ul>
             </div>
+            <div>
+                <p class="text-white font-semibold text-sm mb-3">Legal</p>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="{{ route('terms') }}" class="hover:text-white">Terms of Service</a></li>
+                    <li><a href="{{ route('privacy') }}" class="hover:text-white">Privacy Policy</a></li>
+                    <li><a href="{{ route('refund') }}" class="hover:text-white">Refund Policy</a></li>
+                    <li><a href="{{ route('cookies') }}" class="hover:text-white">Cookie Policy</a></li>
+                    <li><a href="{{ route('acceptable-use') }}" class="hover:text-white">Acceptable Use</a></li>
+                </ul>
+            </div>
         </div>
         <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <p>&copy; {{ date('Y') }} EduBridge · KMG Vital Links (Pvt) Ltd · Harare, Zimbabwe</p>
+            <p>&copy; {{ date('Y') }} EduBridge by <a href="https://www.kmgvitallinks.co.uk" target="_blank" rel="noopener" class="hover:text-white underline">KMG Vital Links (Pvt) Ltd</a> &middot; Harare, Zimbabwe</p>
             <p>Built with ❤️ for Zimbabwe</p>
         </div>
     </div>

@@ -46,6 +46,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'))->name('home');
 Route::get('/about',    fn() => view('about'))->name('about');
+
+// Legal & policy pages
+Route::get('/terms',           fn() => view('legal.terms'))->name('terms');
+Route::get('/privacy',         fn() => view('legal.privacy'))->name('privacy');
+Route::get('/refund',          fn() => view('legal.refund'))->name('refund');
+Route::get('/cookies',         fn() => view('legal.cookies'))->name('cookies');
+Route::get('/acceptable-use',  fn() => view('legal.acceptable-use'))->name('acceptable-use');
 Route::get('/subjects', function () {
     $subjects = require resource_path('data/subjects.php');
     return view('subjects.index', compact('subjects'));
