@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\AiController as AdminAiController;
 use App\Http\Controllers\Student\AchievementsController;
 use App\Http\Controllers\Student\CompanionController;
+use App\Http\Controllers\Student\NotebookController;
 use App\Http\Controllers\Student\CompanionUploadController;
 use App\Http\Controllers\Student\LiveSessionController as StudentLiveSessionController;
 use App\Http\Controllers\Student\LeaderboardController;
@@ -165,10 +166,20 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::post('companion/{conversation}/upload', [CompanionUploadController::class, 'store'])->name('companion.upload');
 
     Route::middleware('throttle:ai')->group(function () {
-        Route::post('companion/{conversation}/send',       [CompanionController::class, 'send'])->name('companion.send');
-        Route::post('companion/{conversation}/study-plan', [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
-        Route::post('companion/{conversation}/notes',      [CompanionController::class, 'notes'])->name('companion.notes');
+        Route::post('companion/{conversation}/send',                [CompanionController::class, 'send'])->name('companion.send');
+        Route::post('companion/{conversation}/study-plan',          [CompanionController::class, 'studyPlan'])->name('companion.study-plan');
+        Route::post('companion/{conversation}/notes',               [CompanionController::class, 'notes'])->name('companion.notes');
+        Route::post('companion/{conversation}/advanced-study-plan', [CompanionController::class, 'advancedStudyPlan'])->name('companion.advanced-study-plan');
     });
+
+    Route::post('companion/{conversation}/save-notes', [CompanionController::class, 'saveNotes'])->name('companion.save-notes');
+    Route::post('companion/{conversation}/save-plan',  [CompanionController::class, 'saveStudyPlan'])->name('companion.save-plan');
+
+    Route::get('notebook',                  [NotebookController::class, 'index'])->name('notebook.index');
+    Route::get('notebook/{notebook}',       [NotebookController::class, 'show'])->name('notebook.show');
+    Route::delete('notebook/{notebook}',    [NotebookController::class, 'destroy'])->name('notebook.destroy');
+    Route::patch('notebook/{notebook}/pin', [NotebookController::class, 'pin'])->name('notebook.pin');
+    Route::patch('notebook/{notebook}',     [NotebookController::class, 'update'])->name('notebook.update');
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {

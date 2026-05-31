@@ -61,9 +61,17 @@
             {{-- Tools --}}
             <div class="p-4 border-b border-gray-700">
                 <div class="text-xs text-gray-400 mb-2 uppercase tracking-widest">Tools</div>
-                <button @click="showPanel='notes'" :class="showPanel==='notes' ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">📝 Generate Notes</button>
-                <button @click="showPanel='plan'"  :class="showPanel==='plan'  ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">📅 Study Plan</button>
-                <button @click="showPanel='chat'"  :class="showPanel==='chat'  ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">💬 Chat</button>
+                <button @click="showPanel='notes'"    :class="showPanel==='notes'    ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">📝 Generate Notes</button>
+                <button @click="showPanel='plan'"     :class="showPanel==='plan'     ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">📅 Study Plan</button>
+                <button @click="showPanel='advanced'" :class="showPanel==='advanced' ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">🗺️ Advanced Plan</button>
+                <button @click="showPanel='chat'"     :class="showPanel==='chat'     ? 'bg-gray-700' : ''" class="w-full text-left text-sm text-gray-300 hover:text-white py-1.5 px-2 rounded">💬 Chat</button>
+            </div>
+            {{-- Notebook link --}}
+            <div class="p-4 border-b border-gray-700">
+                <a href="{{ route('student.notebook.index') }}"
+                   class="flex items-center gap-2 text-sm text-gray-300 hover:text-white">
+                    📓 My Notebook
+                </a>
             </div>
             {{-- Conversation info --}}
             <div class="p-4 text-xs text-gray-500 mt-auto">
@@ -215,7 +223,19 @@
                 <div x-show="notesResult" class="mt-6 bg-white rounded-xl border border-gray-200 p-5 max-w-2xl">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-semibold text-gray-900">Generated Notes</h3>
-                        <button @click="copyToClipboard(notesResult)" class="text-xs text-green-600 hover:underline">Copy</button>
+                        <div class="flex items-center gap-2">
+                            <button @click="copyToClipboard(notesResult)" class="text-xs text-green-600 hover:underline">Copy</button>
+                            <button @click="saveNotes()"
+                                    :disabled="notesSaving"
+                                    class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg transition disabled:opacity-50">
+                                <span x-show="!notesSaving">📓 Save to Notebook</span>
+                                <span x-show="notesSaving">Saving…</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div x-show="notesSavedMsg" class="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                        ✅ <span x-text="notesSavedMsg"></span>
+                        <a href="{{ route('student.notebook.index') }}" class="underline ml-1">View Notebook →</a>
                     </div>
                     <div class="prose-notes" x-html="renderMarkdown(notesResult)"></div>
                 </div>
@@ -266,7 +286,19 @@
                     <div class="mt-6 max-w-2xl space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="font-bold text-gray-900 text-lg" x-text="planResult.title"></h3>
-                            <button @click="copyToClipboard(JSON.stringify(planResult, null, 2))" class="text-xs text-blue-600 hover:underline">Copy JSON</button>
+                            <div class="flex items-center gap-2">
+                                <button @click="copyToClipboard(JSON.stringify(planResult, null, 2))" class="text-xs text-blue-600 hover:underline">Copy JSON</button>
+                                <button @click="saveStudyPlan()"
+                                        :disabled="planSaving"
+                                        class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition disabled:opacity-50">
+                                    <span x-show="!planSaving">📓 Save to Notebook</span>
+                                    <span x-show="planSaving">Saving…</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div x-show="planSavedMsg" class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                            ✅ <span x-text="planSavedMsg"></span>
+                            <a href="{{ route('student.notebook.index') }}" class="underline ml-1">View Notebook →</a>
                         </div>
                         <template x-for="week in planResult.weeks" :key="week.week">
                             <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -288,8 +320,188 @@
                 </template>
             </div>
 
+            {{-- ======================== ADVANCED PLAN PANEL ======================== --}}
+            <div x-show="showPanel === 'advanced'" class="flex-1 overflow-y-auto p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-1">🗺️ Advanced Study Plan</h2>
+                <p class="text-sm text-gray-500 mb-5">Daily breakdown with worked examples, practice questions, textbook references, and curated YouTube videos.</p>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 max-w-2xl">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                <input x-model="advForm.subject" type="text" placeholder="e.g. Pure Mathematics"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                                <select x-model="advForm.level" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                                    <option value="">Select…</option>
+                                    <option>O-Level</option>
+                                    <option>A-Level</option>
+                                    <option>Primary</option>
+                                    <option>University</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Exam board</label>
+                                <select x-model="advForm.exam_board" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                                    <option>ZIMSEC</option>
+                                    <option>Cambridge</option>
+                                    <option>UNAM</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Number of weeks</label>
+                                <input x-model.number="advForm.weeks" type="number" min="1" max="16"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Topics <span class="text-gray-400">(one per line)</span></label>
+                            <textarea x-model="advForm.topicsText" rows="4"
+                                      placeholder="Quadratic equations&#10;Trigonometry&#10;Differentiation&#10;Statistics"
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none"></textarea>
+                        </div>
+                        <div class="bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 text-xs text-violet-700">
+                            ⚠️ Advanced plans include YouTube video search — generation takes 30-60 seconds.
+                        </div>
+                        <button @click="generateAdvancedPlan"
+                                :disabled="advLoading || !advForm.subject.trim()"
+                                class="bg-violet-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-violet-700 transition disabled:opacity-50 text-sm">
+                            <span x-show="!advLoading">🗺️ Generate Advanced Plan</span>
+                            <span x-show="advLoading" class="flex items-center gap-2">
+                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                Generating with YouTube search… this may take a minute
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Advanced plan result --}}
+                <template x-if="advResult && advResult.weeks">
+                    <div class="mt-6 max-w-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-lg" x-text="advResult.title"></h3>
+                                <p class="text-sm text-gray-500" x-text="(advResult.subject ?? '') + ' · ' + (advResult.level ?? '') + ' · ' + (advResult.exam_board ?? '') + ' · ' + (advResult.total_weeks ?? advForm.weeks) + ' weeks'"></p>
+                            </div>
+                            <button @click="saveAdvancedPlan()"
+                                    :disabled="advSaving"
+                                    class="text-sm bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50 font-semibold">
+                                <span x-show="!advSaving">📓 Save to Notebook</span>
+                                <span x-show="advSaving">Saving…</span>
+                            </button>
+                        </div>
+                        <div x-show="advSavedMsg" class="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                            ✅ <span x-text="advSavedMsg"></span>
+                            <a href="{{ route('student.notebook.index') }}" class="underline ml-1">View Notebook →</a>
+                        </div>
+                        <p x-show="advResult.overview" class="text-sm text-gray-600 mb-4 bg-violet-50 rounded-xl p-4" x-text="advResult.overview"></p>
+
+                        <template x-for="(week, wi) in advResult.weeks" :key="week.week">
+                            <div class="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+                                <div class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-violet-600 to-indigo-600">
+                                    <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-extrabold flex items-center justify-center" x-text="week.week"></span>
+                                    <span class="text-white font-semibold text-sm" x-text="week.theme"></span>
+                                </div>
+                                <div class="p-4 space-y-3">
+                                    <template x-if="week.goals && week.goals.length">
+                                        <div>
+                                            <p class="text-xs font-bold uppercase text-gray-500 mb-1">Goals</p>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-0.5">
+                                                <template x-for="g in week.goals"><li x-text="g"></li></template>
+                                            </ul>
+                                        </div>
+                                    </template>
+                                    <template x-if="week.key_concepts && week.key_concepts.length">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <template x-for="c in week.key_concepts">
+                                                <span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700" x-text="c"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="week.days && week.days.length">
+                                        <div>
+                                            <p class="text-xs font-bold uppercase text-gray-500 mb-2">Daily Breakdown</p>
+                                            <template x-for="day in week.days" :key="day.day">
+                                                <div class="border border-gray-100 rounded-xl mb-2 overflow-hidden">
+                                                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50">
+                                                        <span class="w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center" x-text="(day.day ?? '').slice(0,2)"></span>
+                                                        <span class="text-sm font-semibold text-gray-800" x-text="day.day"></span>
+                                                        <span class="text-xs text-gray-500" x-text="day.focus ? '— ' + day.focus : ''"></span>
+                                                        <span x-show="day.duration_minutes" class="ml-auto text-xs text-gray-400" x-text="day.duration_minutes + ' min'"></span>
+                                                    </div>
+                                                    <div class="px-3 pb-3 pt-2 space-y-2">
+                                                        <p x-show="day.content_summary" class="text-xs text-gray-600 bg-blue-50 rounded-lg p-2" x-text="day.content_summary"></p>
+                                                        <template x-if="day.worked_examples && day.worked_examples.length">
+                                                            <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2">
+                                                                <p class="text-xs font-bold text-emerald-700 mb-1.5">✏️ Worked Examples (<span x-text="day.worked_examples.length"></span>)</p>
+                                                                <template x-for="(eg, ei) in day.worked_examples">
+                                                                    <div class="mb-2">
+                                                                        <p class="text-xs font-semibold text-gray-700" x-text="'Q' + (ei+1) + ': ' + eg.question"></p>
+                                                                        <p class="text-xs text-emerald-800 bg-emerald-100 rounded p-1.5 mt-1 whitespace-pre-line" x-text="eg.solution"></p>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="day.practice_questions && day.practice_questions.length">
+                                                            <div class="bg-amber-50 border border-amber-100 rounded-lg p-2">
+                                                                <p class="text-xs font-bold text-amber-700 mb-1.5">📋 Practice Questions (<span x-text="day.practice_questions.length"></span>)</p>
+                                                                <template x-for="pq in day.practice_questions">
+                                                                    <p class="text-xs text-gray-700 mb-1">
+                                                                        <span class="inline-block bg-amber-200 text-amber-800 rounded px-1 text-[10px] font-bold mr-1" x-text="(pq.difficulty ?? 'med').toUpperCase()"></span>
+                                                                        <span x-text="pq.question"></span>
+                                                                    </p>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="day.textbook_refs && day.textbook_refs.length">
+                                                            <div>
+                                                                <p class="text-xs font-bold text-gray-500 mb-1">📚 Textbook refs</p>
+                                                                <template x-for="ref in day.textbook_refs">
+                                                                    <p class="text-xs text-gray-600">
+                                                                        <span class="font-semibold" x-text="ref.book"></span>
+                                                                        <span x-show="ref.pages" class="text-blue-600" x-text="' pp.' + ref.pages"></span>
+                                                                    </p>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="day.youtube_results && day.youtube_results.length">
+                                                            <div>
+                                                                <p class="text-xs font-bold text-gray-500 mb-1.5">🎬 Videos</p>
+                                                                <div class="flex flex-wrap gap-2">
+                                                                    <template x-for="yg in day.youtube_results">
+                                                                        <template x-for="vid in (yg.videos ?? [])">
+                                                                            <a :href="vid.url" target="_blank" rel="noopener"
+                                                                               class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1 hover:border-red-300 transition-colors">
+                                                                                <img :src="vid.thumbnail" class="w-10 h-7 object-cover rounded" :alt="vid.title">
+                                                                                <span class="text-xs text-gray-700 line-clamp-1 max-w-32" x-text="vid.title"></span>
+                                                                            </a>
+                                                                        </template>
+                                                                    </template>
+                                                                </div>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <template x-if="advResult && advResult.error">
+                    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700" x-text="advResult.error"></div>
+                </template>
+            </div>
+
         </div>{{-- /main --}}
-    </div>
+    </div>{{-- /flex container --}}
 
 <script>
 function companionChat() {
@@ -306,6 +518,15 @@ function companionChat() {
         planLoading: false,
         planResult: null,
         planForm: { subject: '{{ $conversation->subject ?? "" }}', level: '{{ $conversation->level ?? "" }}', weeks: 8, topicsText: '' },
+        planSaving: false,
+        planSavedMsg: '',
+        notesSaving: false,
+        notesSavedMsg: '',
+        advLoading: false,
+        advResult: null,
+        advForm: { subject: '{{ $conversation->subject ?? "" }}', level: '{{ $conversation->level ?? "" }}', weeks: 4, topicsText: '', exam_board: 'ZIMSEC' },
+        advSaving: false,
+        advSavedMsg: '',
 
         init() {
             this.renderHistoryMarkdown();
@@ -472,6 +693,77 @@ function companionChat() {
 
         copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+        },
+
+        async saveNotes() {
+            if (!this.notesResult || this.notesSaving) return;
+            this.notesSaving = true;
+            this.notesSavedMsg = '';
+            const title = (this.notesForm.topic || this.notesForm.subject || 'Notes') + ' Notes';
+            try {
+                const res = await fetch('{{ route("student.companion.save-notes", $conversation) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({ title, topic: this.notesForm.topic, subject: this.notesForm.subject, level: this.notesForm.level, content: this.notesResult }),
+                });
+                const data = await res.json();
+                if (data.id) this.notesSavedMsg = 'Notes saved! View in My Notebook.';
+                else this.notesSavedMsg = data.message ?? 'Saved.';
+            } catch(e) { this.notesSavedMsg = 'Save failed — please try again.'; }
+            finally { this.notesSaving = false; }
+        },
+
+        async saveStudyPlan() {
+            if (!this.planResult || this.planSaving) return;
+            this.planSaving = true;
+            this.planSavedMsg = '';
+            const title = (this.planResult.title ?? this.planForm.subject) + ' Study Plan';
+            try {
+                const res = await fetch('{{ route("student.companion.save-plan", $conversation) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({ title, subject: this.planForm.subject, level: this.planForm.level, type: 'study_plan', content: JSON.stringify(this.planResult) }),
+                });
+                const data = await res.json();
+                if (data.id) this.planSavedMsg = 'Study plan saved! View in My Notebook.';
+                else this.planSavedMsg = data.message ?? 'Saved.';
+            } catch(e) { this.planSavedMsg = 'Save failed — please try again.'; }
+            finally { this.planSaving = false; }
+        },
+
+        async generateAdvancedPlan() {
+            if (!this.advForm.subject.trim() || this.advLoading) return;
+            this.advLoading = true;
+            this.advResult  = null;
+            const topics = this.advForm.topicsText.split('\n').map(t => t.trim()).filter(Boolean);
+            try {
+                const res = await fetch('{{ route("student.companion.advanced-study-plan", $conversation) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({ ...this.advForm, topics }),
+                });
+                const data = await res.json();
+                this.advResult = data.plan ?? data;
+            } catch(e) { this.advResult = { error: 'Error generating advanced plan. Please try again.' }; }
+            finally { this.advLoading = false; }
+        },
+
+        async saveAdvancedPlan() {
+            if (!this.advResult || this.advSaving) return;
+            this.advSaving = true;
+            this.advSavedMsg = '';
+            const title = (this.advResult.title ?? this.advForm.subject) + ' Advanced Plan';
+            try {
+                const res = await fetch('{{ route("student.companion.save-plan", $conversation) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({ title, subject: this.advForm.subject, level: this.advForm.level, type: 'advanced_plan', content: JSON.stringify(this.advResult), youtube_videos: [] }),
+                });
+                const data = await res.json();
+                if (data.id) this.advSavedMsg = 'Advanced plan saved! View in My Notebook.';
+                else this.advSavedMsg = data.message ?? 'Saved.';
+            } catch(e) { this.advSavedMsg = 'Save failed — please try again.'; }
+            finally { this.advSaving = false; }
         },
 
         escapeHtml(s) {

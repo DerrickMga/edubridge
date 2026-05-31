@@ -83,6 +83,21 @@ class CompanionService
     }
 
     /**
+     * Generate an advanced, highly-detailed study plan with worked examples,
+     * practice questions, textbook references, and YouTube search queries.
+     */
+    public function generateAdvancedStudyPlan(
+        string $subject,
+        string $level,
+        int    $weeks,
+        array  $topics,
+        string $examBoard  = 'ZIMSEC',
+        string $memoryHint = '',
+    ): array {
+        return $this->gpt->generateAdvancedStudyPlan($subject, $level, $weeks, $topics, $examBoard, $memoryHint);
+    }
+
+    /**
      * Summarise a lesson — usable by teachers or students.
      */
     public function summariseLesson(string $content, string $subject = ''): array

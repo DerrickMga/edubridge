@@ -3,12 +3,17 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\StudentNotebook;
 use App\Services\CompanionService;
+use App\Services\YouTubeSearchService;
 use Illuminate\Http\Request;
 
 class CompanionController extends Controller
 {
-    public function __construct(private CompanionService $companion) {}
+    public function __construct(
+        private CompanionService      $companion,
+        private YouTubeSearchService  $youtube,
+    ) {}
 
     public function index(Request $request)
     {
@@ -158,4 +163,129 @@ class CompanionController extends Controller
         $conversation->update($data);
         return response()->json(['ok' => true]);
     }
+
+    /**
+     * Save generated notes to the student's notebook.
+     */
+    public function saveNotes(Request $request, Conversation $conversation)
+    {
+        $this->authorize('view', $conversation);
+
+        $data = $request->validate([
+            'title'   => 'required|string|max:255',
+            'topic'   => 'nullable|string|max:255',
+            'subject' => 'nullable|string|max:100',
+            'level'   => 'nullable|string|max:50',
+            'content' => 'required|string|max:100000',
+            'tags'    => 'nullable|array',
+            'tags.*'  => 'string|max:50',
+        ]);
+
+        $notebook = StudentNotebook::create([
+            'user_id'         => $request->user()->id,
+            'conversation_id' => $conversation->id,
+            'type'            => 'notes',
+            'title'           => $data['title'],
+            'topic'           => $data['topic'] ?? null,
+            'subject'         => $data['subject'] ?? $conversation->subject,
+            'level'           => $data['level']   ?? $conversation->level,
+            'content'         => $data['content'],
+            'tags'            => $data['tags'] ?? [],
+        ]);
+
+        return response()->json(['ok' => true, 'notebook_id' => $notebook->id]);
+    }
+
+    /**
+     * Save a study plan to the student's notebook.
+     */
+    public function saveStudyPlan(Request $request, Conversation $conversation)
+    {
+        $this->authorize('view', $conversation);
+
+        $data = $request->validate([
+            'title'   => 'required|string|max:255',
+            'subject' => 'nullable|string|max:100',
+            'level'   => 'nullable|string|max:50',
+            'type'    => 'nullable|in:study_plan,advanced_plan',
+            'content' => 'required',  // JSON string or array
+            'youtube_videos' => 'nullable|array',
+            'tags'    => 'nullable|array',
+            'tags.*'  => 'string|max:50',
+        ]);
+
+        $content = is_array($data['content'])
+            ? json_encode($data['content'])
+            : $data['content'];
+
+        $notebook = StudentNotebook::create([
+            'user_id'         => $request->user()->id,
+            'conversation_id' => $conversation->id,
+            'type'            => $data['type'] ?? 'study_plan',
+            'title'           => $data['title'],
+            'subject'         => $data['subject'] ?? $conversation->subject,
+            'level'           => $data['level']   ?? $conversation->level,
+            'content'         => $content,
+            'youtube_videos'  => $data['youtube_videos'] ?? null,
+            'tags'            => $data['tags'] ?? [],
+        ]);
+
+        return response()->json(['ok' => true, 'notebook_id' => $notebook->id]);
+    }
+
+    /**
+     * Generate an advanced, week-by-week study plan with daily breakdown,
+     * worked examples, practice questions, textbook refs, and YouTube videos.
+     */
+    public function advancedStudyPlan(Request $request, Conversation $conversation)
+    {
+        $this->authorize('view', $conversation);
+
+        $data = $request->validate([
+            'subject'    => 'required|string|max:100',
+            'level'      => 'required|string|max:50',
+            'weeks'      => 'required|integer|min:1|max:16',
+            'topics'     => 'required|array|min:1',
+            'topics.*'   => 'string|max:100',
+            'exam_board' => 'nullable|string|max:50',
+        ]);
+
+        // Build memory hint for personalisation
+        $memory = \App\Models\LearningMemory::where('conversation_id', $conversation->id)->first();
+        $memHint = $memory?->summary ?? '';
+
+        // Generate the advanced plan (GPT-4o, up to 8000 tokens)
+        $plan = $this->companion->generateAdvancedStudyPlan(
+            $data['subject'],
+            $data['level'],
+            (int) $data['weeks'],
+            $data['topics'],
+            $data['exam_board'] ?? 'ZIMSEC',
+            $memHint,
+        );
+
+        // Resolve YouTube videos for each week's queries
+        if (! isset($plan['error']) && isset($plan['weeks'])) {
+            foreach ($plan['weeks'] as &$week) {
+                foreach ($week['days'] ?? [] as &$day) {
+                    if (! empty($day['youtube_queries'])) {
+                        $day['youtube_results'] = $this->youtube->resolveQueries($day['youtube_queries']);
+                    }
+                }
+                unset($day);
+            }
+            unset($week);
+        }
+
+        // Store in conversation history
+        $conversation->messages()->create([
+            'role'       => 'assistant',
+            'model_used' => 'gpt',
+            'content'    => "🗺️ **Advanced Study Plan Generated** — {$data['subject']} · {$data['level']} · {$data['weeks']} weeks",
+            'metadata'   => ['type' => 'advanced_plan', 'plan' => $plan],
+        ]);
+
+        return response()->json(['plan' => $plan]);
+    }
 }
+
