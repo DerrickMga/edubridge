@@ -2,6 +2,9 @@
 <x-slot name="title">{{ $notebook->title }}</x-slot>
 
 @push('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <style>
@@ -439,11 +442,22 @@
 {{-- Render markdown for notes --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Render markdown for notes
     const el = document.getElementById('notes-content');
     if (el && el.dataset.md) {
         const html = marked.parse(el.dataset.md, { breaks: true, gfm: true });
         el.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
         el.removeAttribute('data-md');
+    }
+    // Render LaTeX math
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true},
+            ],
+            throwOnError: false,
+        });
     }
 });
 

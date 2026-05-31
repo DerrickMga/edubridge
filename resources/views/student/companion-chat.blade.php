@@ -3,6 +3,8 @@
     @push('head')
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <style>
         .prose-chat h1,.prose-chat h2,.prose-chat h3{font-weight:700;margin:.6em 0 .3em}
         .prose-chat h1{font-size:1.2em}.prose-chat h2{font-size:1.1em}.prose-chat h3{font-size:1em}
@@ -437,35 +439,47 @@
                                                     <div class="px-3 pb-3 pt-2 space-y-2">
                                                         <p x-show="day.content_summary" class="text-xs text-gray-600 bg-blue-50 rounded-lg p-2" x-text="day.content_summary"></p>
                                                         <template x-if="day.worked_examples && day.worked_examples.length">
-                                                            <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2">
-                                                                <p class="text-xs font-bold text-emerald-700 mb-1.5">✏️ Worked Examples (<span x-text="day.worked_examples.length"></span>)</p>
-                                                                <template x-for="(eg, ei) in day.worked_examples">
-                                                                    <div class="mb-2">
-                                                                        <p class="text-xs font-semibold text-gray-700" x-text="'Q' + (ei+1) + ': ' + eg.question"></p>
-                                                                        <p class="text-xs text-emerald-800 bg-emerald-100 rounded p-1.5 mt-1 whitespace-pre-line" x-text="eg.solution"></p>
+                                                            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+                                                                <p class="text-xs font-bold text-emerald-700 mb-2">✏️ Worked Examples</p>
+                                                                <template x-for="(eg, ei) in day.worked_examples" :key="ei">
+                                                                    <div class="mb-3 last:mb-0">
+                                                                        <p class="text-xs font-bold text-slate-600 mb-1">Q<span x-text="ei+1"></span><template x-if="eg.marks"><span class="text-emerald-600 font-normal" x-text="' [' + eg.marks + ' marks]'"></span></template></p>
+                                                                        <div class="text-sm text-slate-800 bg-white rounded-lg px-3 py-2 border border-emerald-100 mb-1.5" x-html="renderMathHtml(eg.question)"></div>
+                                                                        <div class="text-sm bg-emerald-100 rounded-lg px-3 py-2">
+                                                                            <p class="text-xs font-semibold text-emerald-700 mb-0.5">Solution:</p>
+                                                                            <div class="text-emerald-900" x-html="renderMathHtml(eg.solution)"></div>
+                                                                        </div>
                                                                     </div>
                                                                 </template>
                                                             </div>
                                                         </template>
                                                         <template x-if="day.practice_questions && day.practice_questions.length">
-                                                            <div class="bg-amber-50 border border-amber-100 rounded-lg p-2">
-                                                                <p class="text-xs font-bold text-amber-700 mb-1.5">📋 Practice Questions (<span x-text="day.practice_questions.length"></span>)</p>
-                                                                <template x-for="pq in day.practice_questions">
-                                                                    <p class="text-xs text-gray-700 mb-1">
-                                                                        <span class="inline-block bg-amber-200 text-amber-800 rounded px-1 text-[10px] font-bold mr-1" x-text="(pq.difficulty ?? 'med').toUpperCase()"></span>
-                                                                        <span x-text="pq.question"></span>
-                                                                    </p>
+                                                            <div class="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                                                                <p class="text-xs font-bold text-amber-700 mb-2">📋 Practice Questions</p>
+                                                                <template x-for="(pq, pi) in day.practice_questions" :key="pi">
+                                                                    <div class="mb-2 last:mb-0" x-data="{hint:false}">
+                                                                        <div class="flex items-start gap-2">
+                                                                            <span class="shrink-0 text-[10px] font-bold bg-amber-200 text-amber-800 rounded px-1.5 py-0.5 mt-0.5" x-text="(pq.difficulty ?? 'medium').toUpperCase()"></span>
+                                                                            <div class="text-sm text-slate-800 flex-1" x-html="renderMathHtml(pq.question)"></div>
+                                                                            <button x-show="pq.hint" @click="hint=!hint" class="shrink-0 text-[10px] text-amber-600 border border-amber-300 rounded px-1.5 py-0.5 hover:bg-amber-100">Hint</button>
+                                                                        </div>
+                                                                        <div x-show="hint" class="mt-1 text-xs text-amber-700 bg-amber-100 rounded px-2 py-1" x-html="'💡 ' + renderMathHtml(pq.hint ?? '')"></div>
+                                                                    </div>
                                                                 </template>
                                                             </div>
                                                         </template>
                                                         <template x-if="day.textbook_refs && day.textbook_refs.length">
                                                             <div>
-                                                                <p class="text-xs font-bold text-gray-500 mb-1">📚 Textbook refs</p>
-                                                                <template x-for="ref in day.textbook_refs">
-                                                                    <p class="text-xs text-gray-600">
-                                                                        <span class="font-semibold" x-text="ref.book"></span>
-                                                                        <span x-show="ref.pages" class="text-blue-600" x-text="' pp.' + ref.pages"></span>
-                                                                    </p>
+                                                                <p class="text-xs font-bold text-gray-500 mb-1.5">📚 Textbook References</p>
+                                                                <template x-for="(ref, ri) in day.textbook_refs" :key="ri">
+                                                                    <div class="flex items-start gap-1.5 text-xs text-gray-600 bg-slate-50 rounded-lg px-2 py-1.5 mb-1 border border-slate-100">
+                                                                        <span class="text-slate-400">📖</span>
+                                                                        <div>
+                                                                            <span class="font-semibold text-slate-700" x-text="ref.book"></span>
+                                                                            <template x-if="ref.chapter"><span x-text="' · ' + ref.chapter"></span></template>
+                                                                            <template x-if="ref.pages"><span class="text-blue-600" x-text="' · pp. ' + ref.pages.replace(/^pp\.?\s*/i, '')"></span></template>
+                                                                        </div>
+                                                                    </div>
                                                                 </template>
                                                             </div>
                                                         </template>
@@ -744,6 +758,18 @@ function companionChat() {
                 });
                 const data = await res.json();
                 this.advResult = data.plan ?? data;
+                // Render KaTeX after Alpine paints the DOM
+                this.$nextTick(() => {
+                    if (window.katex && window.renderMathInElement) {
+                        renderMathInElement(document.body, {
+                            delimiters: [
+                                {left:'\\(', right:'\\)', display: false},
+                                {left:'\\[', right:'\\]', display: true},
+                            ],
+                            throwOnError: false,
+                        });
+                    }
+                });
             } catch(e) { this.advResult = { error: 'Error generating advanced plan. Please try again.' }; }
             finally { this.advLoading = false; }
         },
@@ -768,6 +794,25 @@ function companionChat() {
 
         escapeHtml(s) {
             return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        },
+
+        renderMathHtml(text) {
+            if (!text) return '';
+            // Escape HTML first to prevent XSS
+            let html = String(text)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Replace inline \( ... \) and display \[ ... \] with KaTeX HTML if available
+            if (window.katex) {
+                html = html.replace(/\\\((.+?)\\\)/gs, (_, m) => {
+                    try { return katex.renderToString(m, { throwOnError: false, displayMode: false }); }
+                    catch(e) { return _; }
+                });
+                html = html.replace(/\\\[(.+?)\\\]/gs, (_, m) => {
+                    try { return katex.renderToString(m, { throwOnError: false, displayMode: true }); }
+                    catch(e) { return _; }
+                });
+            }
+            return html;
         },
 
         renderMarkdown(text) {

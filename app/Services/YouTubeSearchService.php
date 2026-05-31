@@ -41,9 +41,8 @@ class YouTubeSearchService
                 'part'        => 'snippet',
                 'type'        => 'video',
                 'maxResults'  => min($maxResults, 10),
-                'safeSearch'  => 'strict',
+                'safeSearch'  => 'moderate',
                 'relevanceLanguage' => 'en',
-                'videoCategoryId'   => '27', // Education category
             ]);
 
             if ($response->failed()) {
