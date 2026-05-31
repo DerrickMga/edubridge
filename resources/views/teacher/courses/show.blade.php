@@ -50,10 +50,10 @@
             </a>
         </div>
 
-        {{-- Lessons --}}
+        {{-- Course Plan --}}
         <div class="card overflow-hidden mb-4">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="font-semibold text-slate-900">Lessons ({{ $course->lessons->count() }})</h2>
+                <h2 class="font-semibold text-slate-900">Course Plan ({{ $course->lessons->count() }} lessons)</h2>
                 <a href="{{ route('teacher.lessons.create', $course) }}" class="btn-primary btn-sm">+ Add Lesson</a>
             </div>
             @if($course->lessons->isEmpty())

@@ -145,8 +145,14 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
     Route::get('dashboard', [TeacherDashboard::class, 'index'])->name('dashboard');
 
-    // Courses (resource controller)
-    Route::resource('courses', TeacherCourseController::class);
+    // Courses — teachers browse & claim; no create/delete at teacher level
+    Route::get('courses',                        [TeacherCourseController::class, 'index'])->name('courses.index');
+    Route::get('courses/browse',                 [TeacherCourseController::class, 'browse'])->name('courses.browse');
+    Route::post('courses/{course}/claim',        [TeacherCourseController::class, 'claim'])->name('courses.claim');
+    Route::post('courses/{course}/release',      [TeacherCourseController::class, 'release'])->name('courses.release');
+    Route::get('courses/{course}',               [TeacherCourseController::class, 'show'])->name('courses.show');
+    Route::get('courses/{course}/edit',          [TeacherCourseController::class, 'edit'])->name('courses.edit');
+    Route::put('courses/{course}',               [TeacherCourseController::class, 'update'])->name('courses.update');
 
     // Lessons (shallow nested under courses)
     Route::get('courses/{course}/lessons/create', [TeacherLessonController::class, 'create'])->name('lessons.create');

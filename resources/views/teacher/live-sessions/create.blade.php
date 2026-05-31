@@ -77,7 +77,7 @@
                     </select>
                     @if($courses->isEmpty())
                     <p class="form-hint text-amber-600">
-                        <a href="{{ route('teacher.courses.create') }}" class="underline">Create a course first</a> before scheduling a session.
+                        <a href="{{ route('teacher.courses.browse') }}" class="underline">Choose a course first</a> before scheduling a session.
                     </p>
                     @endif
                 </div>

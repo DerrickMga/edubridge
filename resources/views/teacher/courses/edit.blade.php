@@ -24,24 +24,11 @@
         <form method="POST" action="{{ route('teacher.courses.update', $course) }}" class="space-y-5">
             @csrf @method('PUT')
             <div class="card p-6 space-y-5">
-                <div class="form-group">
-                    <label class="form-label">Course Title</label>
-                    <input type="text" name="title" value="{{ old('title', $course->title) }}" class="form-input" required>
-                </div>
-
-                <div class="grid sm:grid-cols-2 gap-5">
-                    <div class="form-group">
-                        <label class="form-label">Subject</label>
-                        <input type="text" name="subject" value="{{ old('subject', $course->subject) }}" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Grade Level</label>
-                        <select name="grade_level" class="form-select" required>
-                            @foreach(['Form 1','Form 2','Form 3','Form 4 (O-Level)','Form 5 (O-Level)','Lower 6 (A-Level)','Upper 6 (A-Level)'] as $grade)
-                            <option value="{{ $grade }}" {{ old('grade_level', $course->grade_level) === $grade ? 'selected' : '' }}>{{ $grade }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                {{-- Read-only course identity (set by curriculum admin) --}}
+                <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Course</p>
+                    <p class="text-base font-semibold text-slate-800">{{ $course->title }}</p>
+                    <p class="text-sm text-slate-500 mt-0.5">{{ $course->subject }} &mdash; {{ $course->grade_level }}</p>
                 </div>
 
                 <div class="form-group">
@@ -76,14 +63,14 @@
             </div>
         </form>
 
-        {{-- Danger zone --}}
-        <div class="mt-8 card border-red-200 p-5">
-            <h3 class="font-semibold text-red-700 mb-1">Danger Zone</h3>
-            <p class="text-sm text-slate-500 mb-4">Permanently delete this course and all its lessons. This cannot be undone.</p>
-            <form method="POST" action="{{ route('teacher.courses.destroy', $course) }}"
-                  onsubmit="return confirm('Delete this course permanently? This cannot be undone.')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn-danger">Delete Course</button>
+        {{-- Release course --}}
+        <div class="mt-8 card border-amber-200 p-5">
+            <h3 class="font-semibold text-amber-700 mb-1">Release Course</h3>
+            <p class="text-sm text-slate-500 mb-4">Return this course to the available pool so another teacher can claim it. Students will retain their enrolments.</p>
+            <form method="POST" action="{{ route('teacher.courses.release', $course) }}"
+                  onsubmit="return confirm('Release this course back to the catalogue?')">
+                @csrf
+                <button type="submit" class="btn-secondary border-amber-300 text-amber-700 hover:bg-amber-50">Release Course</button>
             </form>
         </div>
     </div>
