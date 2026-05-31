@@ -92,7 +92,6 @@
             @php
                 $modelColors = [
                     'chiedza' => ['bg-green-500','text-green-700'],
-                    'claude'  => ['bg-violet-500','text-violet-700'],
                     'gpt'     => ['bg-blue-500','text-blue-700'],
                 ];
                 $totalAiMsgs = array_sum($aiModelStats) ?: 1;

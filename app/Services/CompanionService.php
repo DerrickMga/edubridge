@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * CompanionService — dual-model AI study companion.
  *
- * Routes between Chiedza (Azure / Claude) and GPT-4o based on:
+ * Routes between Chiedza (GPT/persona) and GPT-4o based on:
  *  - user preference stored in conversation metadata
  *  - question type (creative/explanatory → Chiedza, structured/maths → GPT)
  *  - fallback if primary model errors
@@ -20,14 +20,12 @@ use Illuminate\Support\Facades\Log;
 class CompanionService
 {
     public function __construct(
-        private ClaudeService            $chiedza,    // Azure AI / Chiedza agent
-        private AnthropicService         $claude,     // Real Anthropic Claude
+        private ClaudeService            $chiedza,    // Chiedza persona (GPT-4o)
         private GptService               $gpt,        // OpenAI GPT-4o
         private CurriculumContextService $curriculum, // ZIMSEC syllabus context
     ) {}
 
-    const MODEL_CHIEDZA = 'chiedza'; // Azure AI ChiedzaEdu agent
-    const MODEL_CLAUDE  = 'claude';  // Anthropic Claude (api.anthropic.com)
+    const MODEL_CHIEDZA = 'chiedza'; // Chiedza persona (GPT-4o)
     const MODEL_GPT     = 'gpt';     // OpenAI GPT-4o
     const MODEL_AUTO    = 'auto';
 
@@ -105,13 +103,9 @@ class CompanionService
         $msg = "Create study notes{$subjHint}{$levelHint} on: {$topic}";
 
         try {
-            return $this->claude->chat([['role' => 'user', 'content' => $msg]], $system);
+            return $this->gpt->chat([['role' => 'user', 'content' => $msg]], $system);
         } catch (\Throwable) {
-            try {
-                return $this->chiedza->chat([['role' => 'user', 'content' => $msg]], $system);
-            } catch (\Throwable) {
-                return $this->gpt->chat([['role' => 'user', 'content' => $msg]], $system);
-            }
+            return $this->chiedza->chat([['role' => 'user', 'content' => $msg]], $system);
         }
     }
 
@@ -120,7 +114,6 @@ class CompanionService
     private function pickModel(string $preference, string $message): string
     {
         if ($preference === self::MODEL_CHIEDZA) return self::MODEL_CHIEDZA;
-        if ($preference === self::MODEL_CLAUDE)  return self::MODEL_CLAUDE;
         if ($preference === self::MODEL_GPT)     return self::MODEL_GPT;
 
         // Auto-routing heuristics
@@ -131,21 +124,20 @@ class CompanionService
             if (str_contains($lower, $kw)) return self::MODEL_GPT;
         }
 
-        // Default to Anthropic Claude for explanatory/contextual questions
-        return self::MODEL_CLAUDE;
+        // Default to Chiedza for explanatory/contextual questions
+        return self::MODEL_CHIEDZA;
     }
 
     private function callWithFallback(string &$modelUsed, array $history, string $system): string
     {
         $call = function(string $model) use ($history, $system): string {
             return match($model) {
-                self::MODEL_CLAUDE  => $this->claude->chat($history, $system),
-                self::MODEL_GPT     => $this->gpt->chat($history, $system),
-                default             => $this->chiedza->chat($history, $system), // chiedza
+                self::MODEL_GPT => $this->gpt->chat($history, $system),
+                default         => $this->chiedza->chat($history, $system), // chiedza
             };
         };
 
-        $fallbacks = [self::MODEL_CLAUDE, self::MODEL_GPT, self::MODEL_CHIEDZA];
+        $fallbacks = [self::MODEL_GPT, self::MODEL_CHIEDZA];
         // Remove primary model so fallback doesn't repeat it
         $fallbacks = array_values(array_filter($fallbacks, fn($m) => $m !== $modelUsed));
 

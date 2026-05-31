@@ -49,14 +49,14 @@
                     <button @click="setModel('auto')"
                             :class="model==='auto' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
                             class="flex-1 py-1.5 text-xs font-medium transition">Auto</button>
-                    <button @click="setModel('claude')"
-                            :class="model==='claude' ? 'bg-violet-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
-                            class="flex-1 py-1.5 text-xs font-medium transition">Claude</button>
+                    <button @click="setModel('chiedza')"
+                            :class="model==='chiedza' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
+                            class="flex-1 py-1.5 text-xs font-medium transition">Chiedza</button>
                     <button @click="setModel('gpt')"
                             :class="model==='gpt' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
                             class="flex-1 py-1.5 text-xs font-medium transition">GPT-4o</button>
                 </div>
-                <div class="mt-1.5 text-xs text-gray-500">Chiedza (Azure) always on fallback</div>
+                <div class="mt-1.5 text-xs text-gray-500">Chiedza is your default study companion</div>
             </div>
             {{-- Tools --}}
             <div class="p-4 border-b border-gray-700">
@@ -366,7 +366,6 @@ function companionChat() {
 
             const modelMeta = {
                 gpt:     { label: 'GPT-4o',  color: 'text-blue-500',   bg: 'bg-blue-50 border border-blue-200' },
-                claude:  { label: 'Claude',  color: 'text-violet-500', bg: 'bg-violet-50 border border-violet-200' },
                 chiedza: { label: 'Chiedza', color: 'text-green-600',  bg: 'bg-white border border-gray-200' },
             };
 

@@ -10,7 +10,7 @@
                     </span>
                     Chiedza
                 </h1>
-                <p class="page-subtitle">Your AI study companion — powered by Claude</p>
+                <p class="page-subtitle">Your AI study companion — powered by GPT-4o</p>
             </div>
         </div>
     </div>

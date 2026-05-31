@@ -58,7 +58,7 @@
         <div class="card p-6">
             <h2 class="section-title mb-4">Model Breakdown (30d)</h2>
             @php
-                $mc = ['chiedza'=>['bg-green-500','text-green-700'],'claude'=>['bg-violet-500','text-violet-700'],'gpt'=>['bg-blue-500','text-blue-700']];
+                $mc = ['chiedza'=>['bg-green-500','text-green-700'],'gpt'=>['bg-blue-500','text-blue-700']];
                 $total = array_sum($modelStats) ?: 1;
             @endphp
             @forelse($modelStats as $m => $c)
@@ -112,7 +112,6 @@
                             <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Model</label>
                             <div class="flex gap-2">
                                 <button @click="playForm.model='gpt'" :class="playForm.model==='gpt' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">GPT-4o</button>
-                                <button @click="playForm.model='claude'" :class="playForm.model==='claude' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Claude</button>
                                 <button @click="playForm.model='chiedza'" :class="playForm.model==='chiedza' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Chiedza</button>
                             </div>
                         </div>
@@ -169,7 +168,6 @@
                             <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Model</label>
                             <div class="flex gap-2">
                                 <button @click="broadForm.model='gpt'" :class="broadForm.model==='gpt' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">GPT-4o</button>
-                                <button @click="broadForm.model='claude'" :class="broadForm.model==='claude' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Claude</button>
                                 <button @click="broadForm.model='chiedza'" :class="broadForm.model==='chiedza' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Chiedza</button>
                             </div>
                         </div>
@@ -218,7 +216,6 @@
                             <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Model</label>
                             <div class="flex gap-2">
                                 <button @click="courseForm.model='gpt'" :class="courseForm.model==='gpt' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">GPT-4o</button>
-                                <button @click="courseForm.model='claude'" :class="courseForm.model==='claude' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Claude</button>
                                 <button @click="courseForm.model='chiedza'" :class="courseForm.model==='chiedza' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Chiedza</button>
                             </div>
                         </div>
@@ -267,7 +264,6 @@
                             <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Model</label>
                             <div class="flex gap-2">
                                 <button @click="quizForm.model='gpt'" :class="quizForm.model==='gpt' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">GPT-4o</button>
-                                <button @click="quizForm.model='claude'" :class="quizForm.model==='claude' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Claude</button>
                                 <button @click="quizForm.model='chiedza'" :class="quizForm.model==='chiedza' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'" class="px-4 py-2 rounded-lg text-sm font-semibold transition">Chiedza</button>
                             </div>
                         </div>
@@ -323,7 +319,7 @@
                                 <td class="text-xs text-slate-600">{{ $conv->subject ?: '—' }}</td>
                                 <td>
                                     @php $m = $conv->preferred_model ?? 'auto'; @endphp
-                                    <span class="{{ match($m) { 'gpt' => 'badge-blue', 'claude' => 'badge-purple', 'chiedza' => 'badge-green', default => 'badge-amber' } }}">{{ $m }}</span>
+                                    <span class="{{ match($m) { 'gpt' => 'badge-blue', 'chiedza' => 'badge-green', default => 'badge-amber' } }}">{{ $m }}</span>
                                 </td>
                                 <td class="font-semibold text-slate-700 text-center">{{ $conv->messages_count ?? '—' }}</td>
                                 <td class="text-xs text-slate-400">{{ $conv->updated_at->diffForHumans() }}</td>

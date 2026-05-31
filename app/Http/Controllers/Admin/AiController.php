@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{User, Conversation, Message};
-use App\Services\{CompanionService, GptService, AnthropicService, ClaudeService};
+use App\Services\{CompanionService, GptService, ClaudeService};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -13,7 +13,6 @@ class AiController extends Controller
     public function __construct(
         private CompanionService $companion,
         private GptService       $gpt,
-        private AnthropicService $anthropic,
         private ClaudeService    $chiedza,
     ) {}
 
@@ -94,8 +93,7 @@ class AiController extends Controller
         try {
             $response = match ($model) {
                 'chiedza' => $this->chiedza->chat($messages, $system),
-                'claude'  => $this->anthropic->chat($messages, $system),
-                'gpt'     => $this->gpt->chat($messages, $system),
+                default   => $this->gpt->chat($messages, $system),
             };
 
             return response()->json(['response' => $response, 'model' => $model]);
@@ -112,7 +110,7 @@ class AiController extends Controller
         $request->validate([
             'topic'   => 'required|string|max:500',
             'tone'    => 'required|in:formal,friendly,motivational',
-            'model'   => 'required|in:chiedza,claude,gpt',
+            'model'   => 'required|in:chiedza,gpt',
         ]);
 
         $topic = $request->input('topic');
@@ -125,8 +123,7 @@ class AiController extends Controller
         try {
             $draft = match ($model) {
                 'chiedza' => $this->chiedza->chat($messages, $system),
-                'claude'  => $this->anthropic->chat($messages, $system),
-                'gpt'     => $this->gpt->chat($messages, $system),
+                default   => $this->gpt->chat($messages, $system),
             };
 
             return response()->json(['draft' => $draft, 'model' => $model]);
@@ -144,7 +141,7 @@ class AiController extends Controller
             'title'   => 'required|string|max:200',
             'subject' => 'required|string|max:100',
             'level'   => 'required|string|max:100',
-            'model'   => 'required|in:chiedza,claude,gpt',
+            'model'   => 'required|in:chiedza,gpt',
         ]);
 
         $system = 'You are an expert curriculum designer for EduBridge. Write compelling course descriptions. Use markdown with bullet points for key learning outcomes.';
@@ -157,8 +154,7 @@ class AiController extends Controller
             $model = $request->input('model');
             $response = match ($model) {
                 'chiedza' => $this->chiedza->chat($messages, $system),
-                'claude'  => $this->anthropic->chat($messages, $system),
-                'gpt'     => $this->gpt->chat($messages, $system),
+                default   => $this->gpt->chat($messages, $system),
             };
 
             return response()->json(['description' => $response, 'model' => $model]);
@@ -176,7 +172,7 @@ class AiController extends Controller
             'topic'     => 'required|string|max:200',
             'questions' => 'required|integer|min:3|max:15',
             'level'     => 'required|string|max:100',
-            'model'     => 'required|in:chiedza,claude,gpt',
+            'model'     => 'required|in:chiedza,gpt',
         ]);
 
         $system = 'You are a professional exam writer for EduBridge. Output quiz questions as valid JSON array only — no markdown code fences, no extra text. Format: [{"question": "...", "options": ["A", "B", "C", "D"], "answer": "A", "explanation": "..."}]';
@@ -189,8 +185,7 @@ class AiController extends Controller
             $model = $request->input('model');
             $raw = match ($model) {
                 'chiedza' => $this->chiedza->chat($messages, $system),
-                'claude'  => $this->anthropic->chat($messages, $system),
-                'gpt'     => $this->gpt->chat($messages, $system),
+                default   => $this->gpt->chat($messages, $system),
             };
 
             // Strip markdown fences if present
