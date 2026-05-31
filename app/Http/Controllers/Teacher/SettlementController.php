@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\SettlementRequest;
 use App\Models\TeacherPaymentItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -40,9 +41,22 @@ class SettlementController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function downloadPdf(Request $request, SettlementRequest $settlement)
     {
-        $user = $request->user();
+        // Only allow the owning teacher to download their own slip
+        abort_unless($settlement->teacher_id === $request->user()->id, 403);
+
+        $settlement->load(['teacher', 'processor']);
+        $ref = $settlement->reference_number ?? 'SR-'.str_pad($settlement->id, 6, '0', STR_PAD_LEFT);
+
+        $pdf = Pdf::loadView('pdf.settlement', compact('settlement'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("EduBridge-Settlement-{$ref}.pdf");
+    }
+
+    public function store(Request $request): RedirectResponse
+    {        $user = $request->user();
 
         // Must be verified
         if (! $user->is_verified) {

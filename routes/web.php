@@ -130,6 +130,13 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
             ->where('course_id', $course->id)->with(['student', 'course'])->first();
         return view('student.certificate', compact('certificate'));
     })->name('courses.certificate');
+    Route::get('courses/{course}/certificate/pdf', function (\App\Models\Course $course) {
+        $certificate = \App\Models\Certificate::where('student_id', auth()->id())
+            ->where('course_id', $course->id)->with(['student', 'course.teacher'])->firstOrFail();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificate', compact('certificate'))
+            ->setPaper('a4', 'landscape');
+        return $pdf->download('EduBridge-Certificate-'.$certificate->certificate_number.'.pdf');
+    })->name('courses.certificate.pdf');
 
     // Gamification
     Route::get('achievements', [AchievementsController::class, 'index'])->name('achievements');
@@ -231,8 +238,9 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::post('verification', [TeacherVerificationController::class, 'store'])->name('verification.store');
 
     // Settlements
-    Route::get('settlements',  [TeacherSettlementController::class, 'index'])->name('settlements.index');
-    Route::post('settlements', [TeacherSettlementController::class, 'store'])->name('settlements.store');
+    Route::get('settlements',                          [TeacherSettlementController::class, 'index'])->name('settlements.index');
+    Route::post('settlements',                         [TeacherSettlementController::class, 'store'])->name('settlements.store');
+    Route::get('settlements/{settlement}/pdf',         [TeacherSettlementController::class, 'downloadPdf'])->name('settlements.pdf');
 
     // Transactions
     Route::get('transactions', [TeacherTransactionController::class, 'index'])->name('transactions.index');
