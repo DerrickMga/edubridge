@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', 'Contingency / Risk Matrix')
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">Contingency / Risk Matrix</x-slot>
 <div class="space-y-6">
     <div class="flex items-end justify-between gap-3">
         <div>
@@ -149,4 +146,4 @@
         @endif
     </div>
 </div>
-@endsection
+</x-app-layout>

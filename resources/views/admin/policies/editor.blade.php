@@ -1,8 +1,5 @@
-@extends('layouts.app')
-
-@section('page-title', 'New policy version')
-
-@section('content')
+<x-app-layout>
+<x-slot name="title">New policy version</x-slot>
 <div class="max-w-3xl space-y-5">
     <h1 class="text-2xl font-bold text-slate-900">New policy version</h1>
     <p class="text-sm text-slate-500">Re-using an existing slug will publish a new version; previous versions remain on record for audit.</p>
@@ -47,4 +44,4 @@
         </div>
     </form>
 </div>
-@endsection
+</x-app-layout>
