@@ -241,6 +241,15 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::post('ai-tools/summarise',  [AiToolsController::class, 'summarise'])->name('ai-tools.summarise');
     Route::post('ai-tools/notes',      [AiToolsController::class, 'generateNotes'])->name('ai-tools.notes');
     Route::post('ai-tools/study-plan', [AiToolsController::class, 'studyPlan'])->name('ai-tools.study-plan');
+
+    // Workforce / Rota — availability + shifts + presence
+    Route::get('availability',                     [\App\Http\Controllers\Teacher\AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('availability/windows',            [\App\Http\Controllers\Teacher\AvailabilityController::class, 'storeWindow'])->name('availability.windows.store');
+    Route::delete('availability/windows/{window}', [\App\Http\Controllers\Teacher\AvailabilityController::class, 'destroyWindow'])->name('availability.windows.destroy');
+    Route::post('availability/time-off',           [\App\Http\Controllers\Teacher\AvailabilityController::class, 'storeTimeOff'])->name('availability.time-off.store');
+    Route::delete('availability/time-off/{timeOff}', [\App\Http\Controllers\Teacher\AvailabilityController::class, 'destroyTimeOff'])->name('availability.time-off.destroy');
+    Route::post('availability/status',             [\App\Http\Controllers\Teacher\AvailabilityController::class, 'setStatus'])->name('availability.status');
+    Route::get('shifts',                           [\App\Http\Controllers\Teacher\ShiftController::class, 'index'])->name('shifts.index');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -303,6 +312,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     // Platform Settings
     Route::get('settings/pricing',                           [AdminSettingController::class, 'index'])->name('settings.pricing');
     Route::patch('settings/pricing',                         [AdminSettingController::class, 'update'])->name('settings.pricing.update');
+
+    // Workforce / Rota Management
+    Route::get('workforce',                  [\App\Http\Controllers\Admin\WorkforceController::class, 'index'])->name('workforce.index');
+    Route::get('workforce/rota',             [\App\Http\Controllers\Admin\WorkforceController::class, 'rota'])->name('workforce.rota');
+    Route::post('workforce/auto-assign',     [\App\Http\Controllers\Admin\WorkforceController::class, 'autoAssign'])->name('workforce.auto-assign');
+    Route::post('workforce/shifts',          [\App\Http\Controllers\Admin\WorkforceController::class, 'storeShift'])->name('workforce.shifts.store');
+    Route::delete('workforce/shifts/{shift}',[\App\Http\Controllers\Admin\WorkforceController::class, 'destroyShift'])->name('workforce.shifts.destroy');
+    Route::get('workforce/suggest',          [\App\Http\Controllers\Admin\WorkforceController::class, 'suggest'])->name('workforce.suggest');
 });
 
 Route::middleware('auth')->group(function () {

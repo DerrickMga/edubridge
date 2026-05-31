@@ -83,6 +83,14 @@
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/></x-slot>
                     Live Sessions
                 </x-sidebar-link>
+                <x-sidebar-link href="{{ route('teacher.availability.index') }}" :active="request()->routeIs('teacher.availability.*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></x-slot>
+                    Availability
+                </x-sidebar-link>
+                <x-sidebar-link href="{{ route('teacher.shifts.index') }}" :active="request()->routeIs('teacher.shifts.*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></x-slot>
+                    My Shifts
+                </x-sidebar-link>
 
                 <p class="section-label px-3 pb-2 pt-3">Tools</p>
                 <x-sidebar-link href="{{ route('teacher.ai-tools.index') }}" :active="request()->routeIs('teacher.ai-tools*')">
@@ -122,6 +130,10 @@
                 <x-sidebar-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></x-slot>
                     Users
+                </x-sidebar-link>
+                <x-sidebar-link href="{{ route('admin.workforce.index') }}" :active="request()->routeIs('admin.workforce.*')">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></x-slot>
+                    Workforce
                 </x-sidebar-link>
                 <x-sidebar-link href="{{ route('admin.courses.index') }}" :active="request()->routeIs('admin.courses.*')">
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></x-slot>
@@ -236,6 +248,48 @@
             </div>
 
             <div class="ml-auto flex items-center gap-2">
+                {{-- Presence toggle (teachers + admins) --}}
+                @auth
+                @if(in_array(auth()->user()->role, ['teacher', 'admin']))
+                @php $me = auth()->user(); @endphp
+                <div x-data="{
+                        open: false,
+                        status: '{{ $me->availability_status ?? 'offline' }}',
+                        async setStatus(s) {
+                            this.status = s;
+                            this.open = false;
+                            try {
+                                await fetch('{{ route('teacher.availability.status') }}', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                                    body: JSON.stringify({ status: s })
+                                });
+                            } catch (e) {}
+                        }
+                     }" class="relative">
+                    <button @click="open = !open"
+                            class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 hover:bg-slate-50">
+                        <span class="w-2 h-2 rounded-full"
+                              :class="{ 'bg-emerald-500': status==='online', 'bg-amber-500': status==='busy', 'bg-slate-400': status==='away', 'bg-slate-300': status==='offline' }"></span>
+                        <span class="capitalize text-slate-700" x-text="status"></span>
+                    </button>
+                    <div x-show="open" @click.away="open=false" x-cloak
+                         class="absolute right-0 mt-1.5 w-44 bg-white rounded-xl border border-slate-100 shadow-lg overflow-hidden z-50">
+                        <template x-for="opt in [
+                            {k:'online', label:'Online — accepting work', dot:'bg-emerald-500'},
+                            {k:'busy',   label:'Busy — in session',        dot:'bg-amber-500'},
+                            {k:'away',   label:'Away — back later',        dot:'bg-slate-400'},
+                            {k:'offline',label:'Offline',                  dot:'bg-slate-300'}]" :key="opt.k">
+                            <button @click="setStatus(opt.k)" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left">
+                                <span class="w-2 h-2 rounded-full" :class="opt.dot"></span>
+                                <span x-text="opt.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                @endif
+                @endauth
+
                 {{-- Notification bell --}}
                 @auth
                 @php

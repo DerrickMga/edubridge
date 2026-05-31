@@ -126,3 +126,16 @@ Schedule::command(IngestPastPapersCommand::class)
     ->withoutOverlapping()
     ->runInBackground();
 
+
+/*
+|--------------------------------------------------------------------------
+| Workforce / Rota — auto-assign teachers every 15 min
+| Materialises shifts for upcoming live sessions, picks the best-fit
+| teacher (availability + load balance), and closes out finished shifts.
+|--------------------------------------------------------------------------
+*/
+Schedule::command(\App\Console\Commands\AutoAssignShiftsCommand::class, ['--days=14'])
+    ->everyFifteenMinutes()
+    ->name('workforce-auto-assign')
+    ->withoutOverlapping()
+    ->runInBackground();

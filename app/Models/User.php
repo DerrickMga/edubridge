@@ -16,6 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name', 'email', 'password', 'role', 'phone', 'country', 'city',
         'grade_level', 'is_active', 'hourly_rate_usd',
         'avatar', 'bio', 'website', 'linkedin_url', 'twitter_handle', 'qualification',
+        'last_seen_at', 'availability_status', 'accepts_assignments', 'timezone',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -23,9 +24,11 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'email_verified_at'    => 'datetime',
+            'password'             => 'hashed',
+            'is_active'            => 'boolean',
+            'last_seen_at'         => 'datetime',
+            'accepts_assignments'  => 'boolean',
         ];
     }
 
@@ -43,6 +46,23 @@ class User extends Authenticatable implements MustVerifyEmail
     public function settlements()       { return $this->hasMany(SettlementRequest::class, 'teacher_id'); }
     public function equipmentProfile()  { return $this->hasOne(TeacherEquipmentProfile::class, 'teacher_id'); }
     public function equipmentLoans()    { return $this->hasMany(EquipmentLoanApplication::class, 'teacher_id'); }
+
+    // Workforce / Rota
+    public function taughtCourses()     { return $this->belongsToMany(Course::class, 'course_teacher', 'teacher_id', 'course_id')->withPivot('role', 'hourly_rate_usd')->withTimestamps(); }
+    public function shifts()            { return $this->hasMany(TeacherShift::class, 'teacher_id'); }
+    public function availabilityWindows(){ return $this->hasMany(TeacherAvailability::class, 'teacher_id'); }
+    public function timeOff()           { return $this->hasMany(TeacherTimeOff::class, 'teacher_id'); }
+
+    public function isOnline(): bool
+    {
+        if ($this->availability_status === 'offline') return false;
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    public function getEffectiveHourlyRateAttribute(): float
+    {
+        return (float) ($this->hourly_rate_usd ?? 0);
+    }
 
     public function getAvatarUrlAttribute(): ?string
     {

@@ -15,6 +15,7 @@ class Course extends Model
     ];
 
     public function teacher()       { return $this->belongsTo(User::class, 'teacher_id'); }
+    public function teachers()      { return $this->belongsToMany(User::class, 'course_teacher', 'course_id', 'teacher_id')->withPivot('role', 'hourly_rate_usd')->withTimestamps(); }
     public function lessons()       { return $this->hasMany(Lesson::class)->orderBy('order'); }
     public function liveSessions()  { return $this->hasMany(LiveSession::class); }
     public function enrollments()   { return $this->belongsToMany(User::class, 'enrollments')->withTimestamps()->withPivot('status', 'access_period', 'expires_at'); }
