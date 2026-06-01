@@ -82,6 +82,18 @@ Route::get('/courses', function () {
 // Public course detail page (enrollment-aware)
 Route::get('/courses/{course}', [EnrollmentController::class, 'show'])->name('courses.show');
 
+// Bundles (public browse + buy when authed)
+Route::get('/bundles',                [\App\Http\Controllers\BundleController::class, 'index'])->name('bundles.index');
+Route::get('/bundles/{bundle:slug}',  [\App\Http\Controllers\BundleController::class, 'show'])->name('bundles.show');
+Route::post('/bundles/{bundle:slug}/buy', [\App\Http\Controllers\BundleController::class, 'buy'])->middleware(['auth','verified'])->name('bundles.buy');
+
+// Gift redemption (auth required — the redeemer must sign in)
+Route::get('/gift/{token}',  [\App\Http\Controllers\Student\GiftRedemptionController::class, 'show'])->middleware(['auth','verified'])->name('gifts.show');
+Route::post('/gift/{token}', [\App\Http\Controllers\Student\GiftRedemptionController::class, 'redeem'])->middleware(['auth','verified'])->name('gifts.redeem');
+
+// Locale switcher (public)
+Route::get('/locale/{locale}', [\App\Http\Controllers\LocaleController::class, 'switch'])->name('locale.switch');
+
 // Certificate public verification
 Route::get('/verify/{number}', function (string $number) {
     $cert = \App\Models\Certificate::where('certificate_number', $number)
@@ -178,6 +190,22 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('refunds',                       [\App\Http\Controllers\Student\RefundController::class, 'index'])->name('refunds.index');
     Route::get('refunds/{payment}/create',      [\App\Http\Controllers\Student\RefundController::class, 'create'])->name('refunds.create');
     Route::post('refunds/{payment}',            [\App\Http\Controllers\Student\RefundController::class, 'store'])->name('refunds.store');
+
+    // Announcements feed
+    Route::get('announcements', [\App\Http\Controllers\Student\AnnouncementController::class, 'index'])->name('announcements.index');
+
+    // Discussion actions (upvote / pin / resolve)
+    Route::post('discussions/{discussion}/upvote',  [\App\Http\Controllers\Student\DiscussionActionController::class, 'upvote'])->name('discussions.upvote');
+    Route::post('discussions/{discussion}/pin',     [\App\Http\Controllers\Student\DiscussionActionController::class, 'pin'])->name('discussions.pin');
+    Route::post('discussions/{discussion}/resolve', [\App\Http\Controllers\Student\DiscussionActionController::class, 'resolve'])->name('discussions.resolve');
+
+    // Subscription (all-access plan)
+    Route::get('subscriptions',                       [\App\Http\Controllers\Student\SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::post('subscriptions/plans/{plan}/buy',     [\App\Http\Controllers\Student\SubscriptionPurchaseController::class, 'buy'])->name('subscriptions.buy');
+    Route::post('subscriptions/{subscription}/cancel',[\App\Http\Controllers\Student\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+
+    // Referrals
+    Route::get('referrals', [\App\Http\Controllers\Student\ReferralController::class, 'index'])->name('referrals.index');
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
@@ -382,6 +410,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)->except(['show']);
     Route::get('refunds',                   [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('refunds.index');
     Route::patch('refunds/{refund}',        [\App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
+
+    // Bundles + Subscription Plans (P3)
+    Route::resource('bundles', \App\Http\Controllers\Admin\BundleController::class)->except(['show']);
+    Route::resource('plans',   \App\Http\Controllers\Admin\SubscriptionPlanController::class)->except(['show']);
 });
 
 Route::middleware('auth')->group(function () {

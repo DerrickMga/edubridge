@@ -10,8 +10,8 @@ class LessonController extends Controller
     public function show(Lesson $lesson)
     {
         $user = auth()->user();
-        $enrolled = $user->enrollments()->where('course_id', $lesson->course_id)->exists();
-        abort_if(!$enrolled && !$user->isAdmin(), 403, 'Enrol in this course to access lessons.');
+        $access = app(\App\Services\LessonAccessService::class);
+        abort_unless($access->canAccess($user, $lesson), 403, 'This lesson is locked. Either you need to enrol, or it unlocks on a later date.');
 
         $course  = $lesson->course()->with('teacher')->first();
         $lessons = $course->lessons()->where('status', 'published')->orderBy('order')->get();

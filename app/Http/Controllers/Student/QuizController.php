@@ -40,7 +40,18 @@ class QuizController extends Controller
 
         abort_if($attempts >= $quiz->max_attempts, 403, 'Maximum attempts reached.');
 
-        return view('student.quizzes.show', compact('quiz'));
+        // Question selection: bank + randomisation
+        $questions = $quiz->questions()->orderBy('sort_order')->get();
+        if ($quiz->randomize) {
+            $questions = $questions->shuffle();
+            if ($quiz->questions_per_attempt && $quiz->questions_per_attempt > 0) {
+                $questions = $questions->take($quiz->questions_per_attempt);
+            }
+            // Persist the picked IDs for this attempt window so submit() scores the same set
+            session()->put("quiz_set_{$quiz->id}", $questions->pluck('id')->all());
+        }
+
+        return view('student.quizzes.show', compact('quiz', 'questions'));
     }
 
     public function submit(Request $request, Quiz $quiz)
@@ -54,7 +65,12 @@ class QuizController extends Controller
 
         $request->validate(['answers' => ['required', 'array']]);
 
-        $questions = $quiz->questions;
+        $allQuestions = $quiz->questions;
+        if ($quiz->randomize && ($pickedIds = session()->pull("quiz_set_{$quiz->id}"))) {
+            $questions = $allQuestions->whereIn('id', $pickedIds)->values();
+        } else {
+            $questions = $allQuestions;
+        }
         $score     = 0;
         $maxScore  = $questions->sum('points');
 

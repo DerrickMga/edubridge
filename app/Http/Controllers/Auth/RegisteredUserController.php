@@ -36,13 +36,21 @@ class RegisteredUserController extends Controller
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role'     => ['required', 'in:student,teacher'],
+            'ref'      => ['nullable', 'string', 'max:20'],
         ]);
 
+        $referrer = null;
+        if ($ref = $request->input('ref')) {
+            $referrer = User::where('referral_code', strtoupper($ref))->first();
+        }
+
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'name'           => $request->name,
+            'email'          => $request->email,
+            'password'       => Hash::make($request->password),
+            'role'           => $request->role,
+            'referred_by'    => $referrer?->id,
+            'referral_code'  => \App\Http\Controllers\Student\ReferralController::generateCodeFor($request->name),
         ]);
 
         event(new Registered($user));

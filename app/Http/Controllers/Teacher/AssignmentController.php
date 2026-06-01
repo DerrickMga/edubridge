@@ -68,6 +68,14 @@ class AssignmentController extends Controller
             'graded_by'  => auth()->id(),
         ]);
 
-        return back()->with('success', 'Submission graded.');
+        // Plagiarism check (only meaningful when there's text content)
+        $flags = app(\App\Services\PlagiarismService::class)->checkSubmission($submission);
+
+        $msg = 'Submission graded.';
+        if (count($flags)) {
+            $msg .= ' ⚠ Plagiarism flag: '.count($flags).' similar submission(s) detected.';
+        }
+
+        return back()->with('success', $msg);
     }
 }

@@ -82,9 +82,13 @@ class PaymentController extends Controller
         abort_if($course->status !== 'published', 404);
 
         $request->validate([
-            'provider'      => ['required', 'in:stripe,paynow_zw,ecocash,innbucks,payfast'],
-            'access_period' => ['required', 'in:hourly,monthly,termly'],
-            'coupon_code'   => ['nullable', 'string', 'max:40'],
+            'provider'             => ['required', 'in:stripe,paynow_zw,ecocash,innbucks,payfast'],
+            'access_period'        => ['required', 'in:hourly,monthly,termly'],
+            'coupon_code'          => ['nullable', 'string', 'max:40'],
+            'is_gift'              => ['nullable', 'boolean'],
+            'gift_recipient_email' => ['nullable', 'email', 'required_if:is_gift,1'],
+            'gift_recipient_name'  => ['nullable', 'string', 'max:120'],
+            'gift_message'         => ['nullable', 'string', 'max:1000'],
         ]);
 
         $isLocal   = $request->user()->country === 'ZW'
@@ -118,16 +122,20 @@ class PaymentController extends Controller
         $finalAmount = max(0, round($subtotal - $discount, 2));
 
         $payment = Payment::create([
-            'user_id'         => $request->user()->id,
-            'course_id'       => $course->id,
-            'amount'          => $finalAmount,
-            'currency'        => $currency,
-            'provider'        => $request->provider,
-            'access_period'   => $request->access_period,
-            'status'          => 'pending',
-            'subtotal_amount' => $subtotal,
-            'discount_amount' => $discount,
-            'coupon_id'       => $coupon?->id,
+            'user_id'              => $request->user()->id,
+            'course_id'            => $course->id,
+            'amount'               => $finalAmount,
+            'currency'             => $currency,
+            'provider'             => $request->provider,
+            'access_period'        => $request->access_period,
+            'status'               => 'pending',
+            'subtotal_amount'      => $subtotal,
+            'discount_amount'      => $discount,
+            'coupon_id'            => $coupon?->id,
+            'gift_token'           => $request->boolean('is_gift') ? \Illuminate\Support\Str::random(40) : null,
+            'gift_recipient_email' => $request->boolean('is_gift') ? $request->gift_recipient_email : null,
+            'gift_recipient_name'  => $request->boolean('is_gift') ? $request->gift_recipient_name : null,
+            'gift_message'         => $request->boolean('is_gift') ? $request->gift_message : null,
         ]);
 
         if ($coupon && $discount > 0) {
