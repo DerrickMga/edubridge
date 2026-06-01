@@ -182,86 +182,118 @@ SYS;
         string $memoryHint = ''
     ): array {
         $topicList  = implode(', ', $topics);
-        $memNote    = $memoryHint ? "\n\nStudent learning profile: {$memoryHint}" : '';
+        $memNote    = $memoryHint ? "\n\nStudent learning profile (personalise difficulty and pacing accordingly): {$memoryHint}" : '';
 
         $system = <<<SYS
-You are an expert {$examBoard} curriculum planner and master educator for {$subject} at {$level} level.
-Generate a comprehensive, highly detailed advanced study plan.
-Every day must have specific, actionable content — not vague instructions.
-Include real example problems with worked solutions where relevant.
-Textbook references should use common {$examBoard} {$level} {$subject} textbooks (e.g. "Longman Mathematics for O-Level Chapter 5 pp.88-95").
-YouTube search queries must be specific enough to find high-quality educational videos.
-Respond ONLY with valid JSON — no markdown fences — matching EXACTLY this structure:
+You are a world-class curriculum designer and master educator specialising in {$subject} at {$level} level.
+Your study plans are used globally by serious students preparing for high-stakes examinations.
+
+CRITICAL RULES — follow every one exactly:
+
+1. CONTENT QUALITY
+   - Every day must have SPECIFIC, ACTIONABLE content — never vague platitudes like "study the topic".
+   - Worked examples must be genuine exam-quality problems with complete, step-by-step solutions.
+   - Practice questions must vary in difficulty across each week. Hard questions should challenge top students.
+   - Use LaTeX notation for ALL mathematics: inline math with \( ... \) and display math with \[ ... \].
+   - Common mistakes must be specific pitfalls students actually make, not generic advice.
+
+2. TEXTBOOK REFERENCES
+   - Reference real, widely-used textbooks for {$subject} at {$level} (e.g. Bostock & Chandler, Sadler & Thorning, Longman, Cambridge International AS & A Level series).
+   - Include chapter title and specific page range.
+   - Pages field must be ONLY the number range (e.g. "88-95"), never include "pp." — that is added by the UI.
+
+3. YOUTUBE QUERIES — THIS IS THE MOST IMPORTANT SECTION
+   - Each query must find REAL, watchable educational videos that exist on YouTube.
+   - Queries must be UNIVERSAL and concept-focused — never include exam board names (no "ZIMSEC", no "Cambridge", no "IGCSE" unless the concept itself is unique to that board).
+   - Write queries the way a student would search: "[concept] explained", "[technique] step by step", "[concept] tutorial with examples", "how to solve [problem type]", "visualising [concept]".
+   - Provide EXACTLY 2 queries per day with DIFFERENT angles:
+     * Query 1: Conceptual introduction / visual explanation (e.g. "integration by substitution explained visually")
+     * Query 2: Worked examples / exam technique (e.g. "integration by substitution exam problems walkthrough")
+   - Each query should be 4–8 words, specific enough to return relevant results.
+
+4. OUTPUT FORMAT
+   - Respond with ONLY valid JSON. No markdown fences. No prose before or after.
+   - Match EXACTLY this structure:
+
 {
   "title": "string",
   "subject": "string",
   "level": "string",
   "exam_board": "string",
   "total_weeks": number,
-  "overview": "2-3 sentence overview of the plan",
+  "overview": "2-3 sentence overview",
   "weeks": [
     {
       "week": 1,
       "theme": "string",
-      "overview": "string",
-      "goals": ["string"],
+      "overview": "string — what this week builds towards",
+      "goals": ["string — measurable learning outcome"],
       "key_concepts": ["string"],
-      "common_mistakes": ["string — what students typically get wrong"],
+      "common_mistakes": ["string — specific mistake students make"],
       "days": [
         {
           "day": "Monday",
-          "focus": "string — specific topic for this day",
+          "focus": "string — precise topic for this day",
           "duration_minutes": 90,
-          "objectives": ["string"],
-          "content_summary": "string — 2-3 sentence explanation of what to study",
+          "objectives": ["string — by end of session student can..."],
+          "content_summary": "string — 3-4 sentence explanation of what to study and why",
           "worked_examples": [
             {
-              "question": "string — actual exam-style question",
-              "solution": "string — full step-by-step worked solution",
+              "question": "string — real exam-style question using LaTeX for math",
+              "solution": "string — full numbered step-by-step solution using LaTeX",
               "marks": 5
             }
           ],
           "practice_questions": [
             {
-              "question": "string — exam-style question",
-              "hint": "string — hint without giving away the answer",
+              "question": "string — exam-style question using LaTeX",
+              "hint": "string — nudge without giving away the answer",
               "difficulty": "easy|medium|hard"
             }
           ],
           "textbook_refs": [
             {
-              "book": "string — textbook title and edition",
-              "chapter": "string",
-              "pages": "string — e.g. pp.45-52",
+              "book": "string — full textbook title",
+              "chapter": "string — chapter number and name",
+              "pages": "string — number range only e.g. 88-95",
               "topic_in_book": "string"
             }
           ],
           "youtube_queries": [
             {
-              "query": "string — specific YouTube search query",
-              "purpose": "string — what the student will learn from this video",
-              "duration_hint": "string — e.g. under 10 min"
+              "query": "string — universal concept-focused search query, 4-8 words",
+              "purpose": "string — one sentence: what the student gains from this video",
+              "duration_hint": "string — e.g. under 15 min"
             }
           ]
         }
       ],
-      "weekly_self_assessment": ["string — question to test if goals were met"],
-      "revision_tips": ["string"]
+      "weekly_self_assessment": ["string — reflective question to gauge understanding"],
+      "revision_tips": ["string — concrete technique, not generic advice"]
     }
   ],
   "exam_strategy": {
-    "time_management": "string",
-    "common_exam_mistakes": ["string"],
-    "mark_scheme_tips": ["string"]
+    "time_management": "string — specific advice for this subject's exam format",
+    "common_exam_mistakes": ["string — specific to this subject and level"],
+    "mark_scheme_tips": ["string — how to maximise marks on this type of question"]
   }
 }
 SYS;
 
-        $userMsg = "Create a {$weeks}-week advanced study plan for {$subject} at {$level} level on: {$topicList}.{$memNote}";
+        $userMsg = <<<MSG
+Create a {$weeks}-week advanced study plan.
+Subject: {$subject}
+Level: {$level}
+Exam board: {$examBoard}
+Topics to cover: {$topicList}
+{$memNote}
 
-        $raw = $this->chat([['role' => 'user', 'content' => $userMsg]], $system, maxTokens: 8000);
+Remember: YouTube queries must be universal (no exam board names), concept-focused, and written as a student would naturally search.
+MSG;
 
-        // Strip any accidental markdown fences
+        $raw = $this->chatJson([['role' => 'user', 'content' => $userMsg]], $system, maxTokens: 8000);
+
+        // chatJson guarantees valid JSON from the API, but strip fences defensively
         $json = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', trim($raw));
         $data = json_decode($json, true);
 
@@ -270,6 +302,45 @@ SYS;
         }
 
         return $data;
+    }
+
+    /**
+     * Like chat() but forces JSON output and uses a lower temperature for precision.
+     * Uses GPT-4o's response_format: json_object mode.
+     */
+    public function chatJson(array $messages, string $system = null, int $maxTokens = 8000): string
+    {
+        if (empty($this->apiKey)) {
+            Log::warning('GptService: OpenAI API key not configured.');
+            return '{"error":"OpenAI API key not configured"}';
+        }
+
+        $payload = $messages;
+        if ($system !== null) {
+            array_unshift($payload, ['role' => 'system', 'content' => $system]);
+        }
+
+        $response = Http::withToken($this->apiKey)
+            ->timeout(120)
+            ->post($this->baseUrl . '/chat/completions', [
+                'model'           => $this->model,
+                'messages'        => $payload,
+                'temperature'     => 0.3,
+                'max_tokens'      => $maxTokens,
+                'response_format' => ['type' => 'json_object'],
+            ]);
+
+        if ($response->failed()) {
+            Log::error('GptService: chatJson failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 500),
+            ]);
+            throw new \RuntimeException(
+                'OpenAI JSON request failed ('.$response->status().'): '.$response->body()
+            );
+        }
+
+        return (string) data_get($response->json(), 'choices.0.message.content', '{}');
     }
 
     /**
