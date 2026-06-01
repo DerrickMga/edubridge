@@ -42,6 +42,20 @@ return [
         'model'   => env('GEMINI_MODEL', 'gemini-2.0-flash'),
     ],
 
+    // Groq Cloud — free tier, ultra-fast inference (Llama 3.3, Gemma 2, Mixtral)
+    // Get free API key: https://console.groq.com
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'model'   => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+    ],
+
+    // DeepSeek — excellent at STEM/maths/reasoning, very affordable
+    // Get API key: https://platform.deepseek.com
+    'deepseek' => [
+        'api_key' => env('DEEPSEEK_API_KEY'),
+        'model'   => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+    ],
+
     'whatsapp' => [
         'token'           => env('WHATSAPP_TOKEN'),
         'verify_token'    => env('WHATSAPP_VERIFY_TOKEN'),

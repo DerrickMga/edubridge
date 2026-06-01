@@ -47,7 +47,8 @@
             {{-- Model selector --}}
             <div class="p-4 border-b border-gray-700">
                 <div class="text-xs text-gray-400 mb-2 uppercase tracking-widest">Active Model</div>
-                <div class="flex rounded-lg overflow-hidden border border-gray-600">
+                {{-- Row 1: Auto / Chiedza / GPT-4o --}}
+                <div class="flex rounded-lg overflow-hidden border border-gray-600 mb-1.5">
                     <button @click="setModel('auto')"
                             :class="model==='auto' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
                             class="flex-1 py-1.5 text-xs font-medium transition">Auto</button>
@@ -58,7 +59,26 @@
                             :class="model==='gpt' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
                             class="flex-1 py-1.5 text-xs font-medium transition">GPT-4o</button>
                 </div>
-                <div class="mt-1.5 text-xs text-gray-500">Chiedza is your default study companion</div>
+                {{-- Row 2: Gemini / Groq / DeepSeek --}}
+                <div class="flex rounded-lg overflow-hidden border border-gray-600">
+                    <button @click="setModel('gemini')"
+                            :class="model==='gemini' ? 'bg-yellow-500 text-white' : 'text-gray-300 hover:bg-gray-700'"
+                            class="flex-1 py-1.5 text-xs font-medium transition" title="Google Gemini 2.0 Flash">Gemini</button>
+                    <button @click="setModel('groq')"
+                            :class="model==='groq' ? 'bg-orange-500 text-white' : 'text-gray-300 hover:bg-gray-700'"
+                            class="flex-1 py-1.5 text-xs font-medium transition" title="Groq — Llama 3.3 70B (free)">Groq</button>
+                    <button @click="setModel('deepseek')"
+                            :class="model==='deepseek' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'"
+                            class="flex-1 py-1.5 text-xs font-medium transition" title="DeepSeek V3 — STEM specialist">DeepSeek</button>
+                </div>
+                <div class="mt-1.5 text-xs text-gray-500" x-text="{
+                    auto: 'Auto-routes to the best model',
+                    chiedza: 'Chiedza — your warm study companion',
+                    gpt: 'GPT-4o — OpenAI flagship',
+                    gemini: 'Gemini 2.0 Flash — Google AI',
+                    groq: 'Llama 3.3 70B via Groq (free)',
+                    deepseek: 'DeepSeek V3 — great for STEM'
+                }[model] ?? 'Select a model'"></div>
             </div>
             {{-- Tools --}}
             <div class="p-4 border-b border-gray-700">
@@ -94,7 +114,7 @@
                     <span x-show="model === 'gpt'">G</span>
                 </div>
                 <div class="flex-1">
-                    <div class="font-bold text-gray-900" x-text="model === 'gpt' ? 'GPT-4o' : model === 'chiedza' ? 'Chiedza' : 'Chiedza &amp; GPT-4o'"></div>
+                    <div class="font-bold text-gray-900" x-text="({'gpt':'GPT-4o','chiedza':'Chiedza','gemini':'Gemini 2.0 Flash','groq':'Llama 3.3 · Groq','deepseek':'DeepSeek V3'})[model] ?? 'Chiedza & GPT-4o'"></div>
                     <div class="text-xs text-green-600">AI Study Companion &bull; Online</div>
                 </div>
                 <a href="{{ route('student.companion.index') }}" class="md:hidden text-gray-400 hover:text-gray-600 text-sm">&larr; Back</a>
@@ -610,8 +630,11 @@ function companionChat() {
             this.scrollToBottom();
 
             const modelMeta = {
-                gpt:     { label: 'GPT-4o',  color: 'text-blue-500',   bg: 'bg-blue-50 border border-blue-200' },
-                chiedza: { label: 'Chiedza', color: 'text-green-600',  bg: 'bg-white border border-gray-200' },
+                gpt:      { label: 'GPT-4o',           color: 'text-blue-500',   bg: 'bg-blue-50 border border-blue-200' },
+                chiedza:  { label: 'Chiedza',          color: 'text-green-600',  bg: 'bg-white border border-gray-200' },
+                gemini:   { label: 'Gemini 2.0 Flash', color: 'text-yellow-600', bg: 'bg-yellow-50 border border-yellow-200' },
+                groq:     { label: 'Llama 3.3 · Groq', color: 'text-orange-500', bg: 'bg-orange-50 border border-orange-200' },
+                deepseek: { label: 'DeepSeek V3',      color: 'text-purple-600', bg: 'bg-purple-50 border border-purple-200' },
             };
 
             try {

@@ -23,12 +23,18 @@ class CompanionService
         private ClaudeService            $chiedza,    // Chiedza persona (GPT-4o)
         private GptService               $gpt,        // OpenAI GPT-4o
         private AnthropicService         $anthropic,  // Azure AI Foundry (Claude) — fallback when OpenAI quota exhausted
+        private GeminiService            $gemini,     // Google Gemini 2.0 Flash
+        private GroqService              $groq,       // Groq Cloud (Llama 3.3 / Gemma 2 / Mixtral) — free tier
+        private DeepSeekService          $deepseek,   // DeepSeek V3 — STEM/maths specialist
         private CurriculumContextService $curriculum, // ZIMSEC syllabus context
     ) {}
 
-    const MODEL_CHIEDZA = 'chiedza'; // Chiedza persona (GPT-4o)
-    const MODEL_GPT     = 'gpt';     // OpenAI GPT-4o
-    const MODEL_AUTO    = 'auto';
+    const MODEL_CHIEDZA  = 'chiedza';   // Chiedza persona (GPT-4o)
+    const MODEL_GPT      = 'gpt';       // OpenAI GPT-4o
+    const MODEL_GEMINI   = 'gemini';    // Google Gemini 2.0 Flash
+    const MODEL_GROQ     = 'groq';      // Groq Cloud — Llama 3.3 70B
+    const MODEL_DEEPSEEK = 'deepseek';  // DeepSeek V3 / R1
+    const MODEL_AUTO     = 'auto';
 
     /**
      * Send a message and get a reply, updating learning memory.
@@ -129,57 +135,91 @@ class CompanionService
 
     private function pickModel(string $preference, string $message): string
     {
-        if ($preference === self::MODEL_CHIEDZA) return self::MODEL_CHIEDZA;
-        if ($preference === self::MODEL_GPT)     return self::MODEL_GPT;
+        if (in_array($preference, [
+            self::MODEL_CHIEDZA, self::MODEL_GPT,
+            self::MODEL_GEMINI, self::MODEL_GROQ, self::MODEL_DEEPSEEK,
+        ])) {
+            return $preference;
+        }
 
         // Auto-routing heuristics
         $lower = strtolower($message);
-        $mathKeywords = ['calculate', 'solve', 'equation', 'formula', 'proof', 'derive',
-                         'integrate', 'differentiate', 'graph', 'algebra', 'statistics'];
+
+        // DeepSeek excels at maths and hard science
+        $deepseekKeywords = ['calculus', 'derivative', 'integral', 'proof', 'theorem',
+                             'physics', 'chemistry', 'stoichiometry', 'vectors', 'matrix'];
+        foreach ($deepseekKeywords as $kw) {
+            if (str_contains($lower, $kw)) return self::MODEL_DEEPSEEK;
+        }
+
+        // GPT-4o for general structured questions
+        $mathKeywords = ['calculate', 'solve', 'equation', 'formula', 'derive',
+                         'differentiate', 'graph', 'algebra', 'statistics'];
         foreach ($mathKeywords as $kw) {
             if (str_contains($lower, $kw)) return self::MODEL_GPT;
         }
 
-        // Default to Chiedza for explanatory/contextual questions
+        // Default to Chiedza for explanatory/contextual/language questions
         return self::MODEL_CHIEDZA;
     }
 
     private function callWithFallback(string &$modelUsed, array $history, string $system): string
     {
+        // Map model name → callable
         $call = function(string $model) use ($history, $system): string {
             return match($model) {
-                self::MODEL_GPT => $this->gpt->chat($history, $system),
-                default         => $this->chiedza->chat($history, $system), // chiedza
+                self::MODEL_GPT      => $this->gpt->chat($history, $system),
+                self::MODEL_GEMINI   => $this->gemini->chat($history, $system),
+                self::MODEL_GROQ     => $this->groq->chat($history, $system),
+                self::MODEL_DEEPSEEK => $this->deepseek->chat($history, $system),
+                default              => $this->chiedza->chat($history, $system), // chiedza / auto
             };
         };
 
-        $fallbacks = [self::MODEL_GPT, self::MODEL_CHIEDZA];
-        // Remove primary model so fallback doesn't repeat it
-        $fallbacks = array_values(array_filter($fallbacks, fn($m) => $m !== $modelUsed));
+        // Ordered fallback chain — each provider is on a different billing account
+        $allModels = [
+            self::MODEL_CHIEDZA,
+            self::MODEL_GPT,
+            self::MODEL_GEMINI,
+            self::MODEL_GROQ,
+            self::MODEL_DEEPSEEK,
+        ];
+        // Put the requested model first, then the rest in order
+        $chain = array_values(array_merge(
+            [$modelUsed],
+            array_filter($allModels, fn($m) => $m !== $modelUsed)
+        ));
 
-        try {
-            return $call($modelUsed);
-        } catch (\Throwable $e) {
-            Log::warning("CompanionService: primary model ({$modelUsed}) failed, trying fallback. " . $e->getMessage());
-            foreach ($fallbacks as $fb) {
-                try {
-                    $modelUsed = $fb;
-                    return $call($fb);
-                } catch (\Throwable) {}
-            }
+        foreach ($chain as $i => $model) {
+            // Skip unconfigured providers silently
+            if ($model === self::MODEL_GEMINI   && ! $this->gemini->isConfigured())   continue;
+            if ($model === self::MODEL_GROQ     && ! $this->groq->isConfigured())     continue;
+            if ($model === self::MODEL_DEEPSEEK && ! $this->deepseek->isConfigured()) continue;
 
-            // Last resort: Azure AI Foundry (Claude) — independent provider, unaffected by OpenAI quota
-            Log::warning('CompanionService: all OpenAI models failed, trying Azure AI Foundry fallback.');
             try {
-                $modelUsed = 'chiedza'; // report as chiedza since same persona
-                return $this->anthropic->chat($history, $system);
-            } catch (\Throwable $azureEx) {
-                Log::error('CompanionService: Azure fallback also failed: ' . $azureEx->getMessage());
+                $reply     = $call($model);
+                $modelUsed = $model;
+                if ($i > 0) {
+                    Log::info("CompanionService: using fallback model [{$model}] (primary was {$chain[0]})");
+                }
+                return $reply;
+            } catch (\Throwable $e) {
+                Log::warning("CompanionService: model [{$model}] failed: " . $e->getMessage());
             }
-
-            Log::error('CompanionService: all models failed.');
-            return "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";
         }
+
+        // Azure AI Foundry (Claude) — completely separate infrastructure, last resort
+        Log::warning('CompanionService: all primary models failed, trying Azure AI Foundry.');
+        try {
+            $reply     = $this->anthropic->chat($history, $system);
+            $modelUsed = 'chiedza';
+            return $reply;
+        } catch (\Throwable $azureEx) {
+            Log::error('CompanionService: Azure fallback also failed: ' . $azureEx->getMessage());
+        }
+
+        Log::error('CompanionService: all models failed.');
+        return "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";
     }
 
     private function buildSystemPrompt(Conversation $conversation): string

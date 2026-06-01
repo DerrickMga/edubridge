@@ -107,4 +107,71 @@ PROMPT;
 
         return $text;
     }
+
+    /**
+     * General-purpose chat completion via Gemini.
+     *
+     * Converts OpenAI-style message history into Gemini's `contents` format,
+     * with optional system instruction.
+     *
+     * @param  array<array{role: string, content: string}>  $messages
+     */
+    public function chat(array $messages, string $system = null, int $maxTokens = 2048): string
+    {
+        if (empty($this->apiKey)) {
+            Log::warning('GeminiService: GEMINI_API_KEY not configured.');
+            throw new \RuntimeException('Gemini API key not configured.');
+        }
+
+        // Convert OpenAI-style roles to Gemini roles (user/model)
+        $contents = [];
+        foreach ($messages as $msg) {
+            $role = $msg['role'] === 'assistant' ? 'model' : 'user';
+            $contents[] = [
+                'role'  => $role,
+                'parts' => [['text' => $msg['content']]],
+            ];
+        }
+
+        if (empty($contents)) {
+            $contents = [['role' => 'user', 'parts' => [['text' => 'Hello']]]];
+        }
+
+        $url = self::BASE_URL . "/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $body = [
+            'contents'         => $contents,
+            'generationConfig' => [
+                'temperature'     => 0.75,
+                'maxOutputTokens' => $maxTokens,
+            ],
+        ];
+
+        if ($system !== null) {
+            $body['system_instruction'] = [
+                'parts' => [['text' => $system]],
+            ];
+        }
+
+        $response = Http::timeout(45)->post($url, $body);
+
+        if ($response->failed()) {
+            Log::error('GeminiService: chat failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 500),
+            ]);
+            throw new \RuntimeException(
+                'Gemini chat failed (' . $response->status() . '): ' . $response->body()
+            );
+        }
+
+        $text = (string) data_get($response->json(), 'candidates.0.content.parts.0.text', '');
+
+        if (empty($text)) {
+            Log::warning('GeminiService: empty chat response', ['response' => $response->json()]);
+            throw new \RuntimeException('Gemini returned an empty response.');
+        }
+
+        return $text;
+    }
 }
