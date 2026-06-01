@@ -22,6 +22,7 @@ class CompanionService
     public function __construct(
         private ClaudeService            $chiedza,    // Chiedza persona (GPT-4o)
         private GptService               $gpt,        // OpenAI GPT-4o
+        private AnthropicService         $anthropic,  // Azure AI Foundry (Claude) — fallback when OpenAI quota exhausted
         private CurriculumContextService $curriculum, // ZIMSEC syllabus context
     ) {}
 
@@ -166,6 +167,16 @@ class CompanionService
                     return $call($fb);
                 } catch (\Throwable) {}
             }
+
+            // Last resort: Azure AI Foundry (Claude) — independent provider, unaffected by OpenAI quota
+            Log::warning('CompanionService: all OpenAI models failed, trying Azure AI Foundry fallback.');
+            try {
+                $modelUsed = 'chiedza'; // report as chiedza since same persona
+                return $this->anthropic->chat($history, $system);
+            } catch (\Throwable $azureEx) {
+                Log::error('CompanionService: Azure fallback also failed: ' . $azureEx->getMessage());
+            }
+
             Log::error('CompanionService: all models failed.');
             return "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";
         }

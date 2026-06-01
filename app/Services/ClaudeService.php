@@ -128,6 +128,80 @@ The subject concord must match the noun class of the subject:
   ✓ "Mudzidzisi anouya" (The teacher is coming)  ✗ "Mudzidzisi unouya"
 - Class 3 nouns (mu-/mi-): agreement concords are u-/i-.
   ✓ "Muti unomera" (The tree is growing)  ✗ "Muti anomera"
+
+---
+
+## IsiNdebele Grammar Reference (use this whenever responding in Ndebele)
+
+### Izigaba Zamagama — Noun Classes
+| Isigaba | Singular | Plural | Umkhakha | Izibonelo |
+|---------|----------|--------|----------|-----------|
+| 1/2     | um(u)-   | aba-   | Abantu   | umuntu/abantu, umfazi/abafazi, uthisha/othisha |
+| 3/4     | um(u)-   | imi-   | Imithi, izinto | umuthi/imithi, umlomo/iimilomo |
+| 5/6     | i(li)-   | ama-   | Ezahlukene | ibhuku/amabhuku, ilanga/amalanga, ibizo/amagama |
+| 7/8     | is(i)-   | iz(i)- | Izilimi, izinto | isikole/izikole, isiNdebele/—, isifundo/izifundo |
+| 9/10    | in-/im-  | izin-  | Izilwane | inkomo/izinkomo, inja/izinja, indlela/izindlela |
+| 11/10   | u(lu)-   | izin-  | Olude    | ulimi/izilimi, ukhalo/izinkhalo |
+| 14      | ubu-     | —      | Abstract | ubuntu, ubuhle, ubukhali |
+| 15      | uku-     | —      | Infinitive | ukudla, ukuya, ukufunda |
+
+### Izisho Zezihloko — Subject Concords
+- Class 1 sg: u- → ufunda (s/he learns)
+- Class 1 pl: ba- → bafunda (they learn)
+- Class 3: u- → umuthi uyakhula (the tree grows)
+- Class 5: li- → ibhuku liyabizwa (the book is called)
+- Class 7: si- → isikole sivulwe (the school is open)
+- Class 9: i- → inkomo idla (the cow eats)
+- Class 11: lu- → ulimi luyafundwa (the language is learnt)
+- Class 14: bu- → ubuntu buyahlonishwa (humanity is respected)
+- Class 15: ku- → ukufunda kuyajabulisa (learning is pleasing)
+- Personal: ngi- (I), u- (you sg), si- (we), li- (you pl)
+
+### Ukwakhiwa Kwesenzo — Verb Structure
+`[Subject concord] + [Tense] + [Object concord] + [Root] + [Extension] + [Final vowel]`
+
+**Tense markers:**
+- -ya- present: ngiyabona (I see), uyafunda (you/he/she studies)
+- -zo- future: ngizofunda (I will study), uzofika (s/he will arrive)
+- past: ngi + -a- + root + -a → ngabona (I saw); or perfect: ngi + root + -ile → ngibonile
+
+**Izandiso (Extensions):**
+- -el-/-il- (applied): ngifundela (I study for/on behalf of)
+- -is-/-es- (causative): ngifundisa (I teach = cause to learn)
+- -w-/-iw- (passive): kufundwa (it is being studied)
+- -an- (reciprocal): sikhulumana (we talk to each other)
+- -is-an- (reciprocal causative): sifundisana (we teach each other)
+
+**Izibonelo:**
+- ngifunda isiNdebele = I study/learn Ndebele
+- uyangifundisa = s/he teaches me (u=s/he, ya=present, ngi=me obj, fundisa=teach)
+- siyabonana = we see each other
+- ibhuku lifundwa ngabafundi = the book is read by students (passive)
+
+### Amagama Ezikolweni (Academic Vocabulary in Ndebele)
+- izibalo = mathematics / numbers
+- isayensi = science
+- umlando = history
+- isifundo = subject / lesson
+- umfundi = student / learner
+- uthisha / umfundisi = teacher
+- isikole = school
+- ibhuku / incwadi = book
+- imibuzo = questions
+- izimpendulo = answers
+- isixazululo = solution
+- umbalo = calculation
+- izinombolo = numbers (counting)
+- isifundo sekhompyutha = computer studies
+- isikhathi = time / period
+- uhlelo = timetable / plan
+- amabizo = nouns
+- izenzo = verbs
+- iziphawulo = adjectives
+- isenzo = verb
+- ibizo = noun
+- isiphawulo = adjective
+- isijobelelo = suffix / prefix (context)
 PERSONA;
 
     public function __construct()
