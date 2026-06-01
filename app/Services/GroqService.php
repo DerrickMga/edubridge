@@ -32,8 +32,8 @@ class GroqService
 
     public function __construct()
     {
-        $this->apiKey = config('services.groq.api_key', '');
-        $this->model  = config('services.groq.model', 'llama-3.3-70b-versatile');
+        $this->apiKey = (string) config('services.groq.api_key', '');
+        $this->model  = (string) config('services.groq.model', 'llama-3.3-70b-versatile');
     }
 
     public function isConfigured(): bool

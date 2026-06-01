@@ -24,10 +24,10 @@ class AnthropicService
 
     public function __construct()
     {
-        $this->endpoint   = rtrim(config('services.anthropic.endpoint', ''), '/');
-        $this->apiKey     = config('services.anthropic.api_key', '');
-        $this->model      = config('services.anthropic.model', 'claude-opus-4-7');
-        $this->apiVersion = config('services.anthropic.api_version', '2024-10-21');
+        $this->endpoint   = rtrim((string) config('services.anthropic.endpoint', ''), '/');
+        $this->apiKey     = (string) config('services.anthropic.api_key', '');
+        $this->model      = (string) config('services.anthropic.model', 'claude-opus-4-7');
+        $this->apiVersion = (string) config('services.anthropic.api_version', '2024-10-21');
     }
 
     /**

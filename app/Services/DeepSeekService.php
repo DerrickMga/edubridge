@@ -23,8 +23,8 @@ class DeepSeekService
 
     public function __construct()
     {
-        $this->apiKey = config('services.deepseek.api_key', '');
-        $this->model  = config('services.deepseek.model', 'deepseek-chat');
+        $this->apiKey = (string) config('services.deepseek.api_key', '');
+        $this->model  = (string) config('services.deepseek.model', 'deepseek-chat');
     }
 
     public function isConfigured(): bool
