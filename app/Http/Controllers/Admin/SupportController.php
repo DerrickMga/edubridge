@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketReply;
 use App\Models\User;
+use App\Notifications\SupportTicketReplyNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -46,7 +47,7 @@ class SupportController extends Controller
     {
         $data = $request->validate(['message' => 'required|string|max:5000']);
 
-        SupportTicketReply::create([
+        $reply = SupportTicketReply::create([
             'ticket_id'      => $ticket->id,
             'user_id'        => $request->user()->id,
             'message'        => $data['message'],
@@ -55,6 +56,12 @@ class SupportController extends Controller
 
         $newStatus = $request->input('status', 'waiting');
         $ticket->update(['status' => $newStatus]);
+
+        // Email the ticket owner
+        if ($ticket->user) {
+            $ticket->refresh();
+            $ticket->user->notify(new SupportTicketReplyNotification($ticket, $reply));
+        }
 
         return back()->with('success', 'Reply sent.');
     }
@@ -67,6 +74,8 @@ class SupportController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
+        $previousStatus = $ticket->status;
+
         $update = ['status' => $data['status']];
         if (isset($data['admin_notes'])) {
             $update['admin_notes'] = $data['admin_notes'];
@@ -74,11 +83,33 @@ class SupportController extends Controller
         if (array_key_exists('assigned_to', $data)) {
             $update['assigned_to'] = $data['assigned_to'] ?: null;
         }
-        if ($data['status'] === 'resolved' && !$ticket->resolved_at) {
+        if ($data['status'] === 'resolved' && ! $ticket->resolved_at) {
             $update['resolved_at'] = now();
         }
 
         $ticket->update($update);
+
+        // Notify the user when status changes to resolved or closed (without a reply)
+        $closingStatuses = ['resolved', 'closed'];
+        if (in_array($data['status'], $closingStatuses)
+            && ! in_array($previousStatus, $closingStatuses)
+            && $ticket->user
+        ) {
+            $ticket->refresh();
+            $closingMessage = $data['status'] === 'resolved'
+                ? 'Your support ticket has been marked as resolved. If your issue persists, please open a new ticket or reply to this thread.'
+                : 'Your support ticket has been closed. If you need further assistance, please open a new ticket.';
+
+            $syntheticReply = new \App\Models\SupportTicketReply([
+                'ticket_id'      => $ticket->id,
+                'user_id'        => $request->user()->id,
+                'message'        => $closingMessage,
+                'is_admin_reply' => true,
+            ]);
+            $syntheticReply->created_at = now();
+
+            $ticket->user->notify(new SupportTicketReplyNotification($ticket, $syntheticReply));
+        }
 
         return back()->with('success', 'Ticket updated.');
     }

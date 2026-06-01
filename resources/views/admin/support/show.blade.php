@@ -33,6 +33,19 @@
                             @if($ticket->resolved_at) &middot; Resolved {{ $ticket->resolved_at->format('d M Y') }} @endif
                         </p>
                     </div>
+                    @if($ticket->isOpen())
+                    <form method="POST" action="{{ route('admin.support.status', $ticket) }}"
+                          onsubmit="return confirm('Close ticket {{ $ticket->ticket_number }}? The user will be notified.')">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" value="closed">
+                        <button type="submit"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            Close Ticket
+                        </button>
+                    </form>
+                    @endif
                 </div>
             </div>
 
