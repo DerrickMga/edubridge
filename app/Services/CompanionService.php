@@ -201,6 +201,18 @@ SYS;
                     $base .= $syllabusCtx;
                 }
             }
+
+            // Extra context when the subject is Shona language
+            if ($subject && preg_match('/\bshona\b/i', $subject)) {
+                $base .= "\n\n## Shona Language Teaching Mode\n"
+                    . "The student is learning ChiShona as a subject. "
+                    . "Apply the full Shona grammar reference from your persona. "
+                    . "When teaching noun classes, always show: the class number, singular prefix, plural prefix, concord, and three example words. "
+                    . "When teaching verb construction, always show the full slot analysis: "
+                    . "[subject concord]+[tense]+[object concord]+[root]+[extension]+[final vowel]. "
+                    . "Correct grammar errors in the student's Shona gently and explicitly. "
+                    . "Never guess Shona vocabulary — if unsure of the exact Shona term, say so rather than inventing a word.";
+            }
         } catch (\Throwable) {
             // Non-fatal — proceed without syllabus context
         }
