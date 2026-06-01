@@ -180,6 +180,24 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::delete('notebook/{notebook}',    [NotebookController::class, 'destroy'])->name('notebook.destroy');
     Route::patch('notebook/{notebook}/pin', [NotebookController::class, 'pin'])->name('notebook.pin');
     Route::patch('notebook/{notebook}',     [NotebookController::class, 'update'])->name('notebook.update');
+
+    // Reviews
+    Route::post('courses/{course}/reviews',   [\App\Http\Controllers\Student\ReviewController::class, 'store'])->name('courses.reviews.store');
+    Route::delete('reviews/{review}',         [\App\Http\Controllers\Student\ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Wishlist
+    Route::get('wishlist',                    [\App\Http\Controllers\Student\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('wishlist/{course}/toggle',   [\App\Http\Controllers\Student\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Lesson notes
+    Route::get('notes',                       [\App\Http\Controllers\Student\LessonNoteController::class, 'index'])->name('notes.index');
+    Route::post('lessons/{lesson}/notes',     [\App\Http\Controllers\Student\LessonNoteController::class, 'store'])->name('notes.store');
+    Route::delete('notes/{note}',             [\App\Http\Controllers\Student\LessonNoteController::class, 'destroy'])->name('notes.destroy');
+
+    // Refunds (student)
+    Route::get('refunds',                       [\App\Http\Controllers\Student\RefundController::class, 'index'])->name('refunds.index');
+    Route::get('refunds/{payment}/create',      [\App\Http\Controllers\Student\RefundController::class, 'create'])->name('refunds.create');
+    Route::post('refunds/{payment}',            [\App\Http\Controllers\Student\RefundController::class, 'store'])->name('refunds.store');
 });
 
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
@@ -291,6 +309,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('policies/contract/{contract}/pdf',   [\App\Http\Controllers\Teacher\PolicyController::class, 'downloadPdf'])->name('policies.contract.pdf');
     Route::get('policies/{policy}',                  [\App\Http\Controllers\Teacher\PolicyController::class, 'show'])->name('policies.show');
     Route::post('policies/{policy}/ack',             [\App\Http\Controllers\Teacher\PolicyController::class, 'acknowledge'])->name('policies.acknowledge');
+
+    // Grade book + per-student progress
+    Route::get('courses/{course}/gradebook',                       [\App\Http\Controllers\Teacher\GradeBookController::class, 'show'])->name('courses.gradebook');
+    Route::get('courses/{course}/progress',                        [\App\Http\Controllers\Teacher\StudentProgressController::class, 'show'])->name('courses.progress');
+    Route::get('courses/{course}/progress/{student}',              [\App\Http\Controllers\Teacher\StudentProgressController::class, 'student'])->name('courses.progress.student');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -389,6 +412,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::get('support/{ticket}',                         [AdminSupportController::class, 'show'])->name('support.show');
     Route::post('support/{ticket}/reply',                  [AdminSupportController::class, 'reply'])->name('support.reply');
     Route::patch('support/{ticket}/status',                [AdminSupportController::class, 'updateStatus'])->name('support.status');
+
+    // Coupons + Refunds
+    Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)->except(['show']);
+    Route::get('refunds',                   [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('refunds.index');
+    Route::patch('refunds/{refund}',        [\App\Http\Controllers\Admin\RefundController::class, 'update'])->name('refunds.update');
 });
 
 Route::middleware('auth')->group(function () {

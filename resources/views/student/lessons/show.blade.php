@@ -239,6 +239,45 @@
                     @endforeach
                 </div>
             </div>
+
+            {{-- My notes for this lesson --}}
+            <div class="card p-5 mt-6" x-data="{ ts: null }">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-semibold text-slate-800 text-sm">My notes</h3>
+                    <a href="{{ route('student.notes.index') }}" class="text-xs text-slate-500 hover:underline">View all →</a>
+                </div>
+                @if(session('success'))<div class="px-3 py-1.5 rounded bg-emerald-50 text-emerald-800 text-xs mb-2">{{ session('success') }}</div>@endif
+                <form method="POST" action="{{ route('student.notes.store', $lesson) }}" class="space-y-2">
+                    @csrf
+                    <textarea name="body" required maxlength="5000" rows="3" placeholder="Type a note for this lesson…"
+                              class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200"></textarea>
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs text-slate-500 flex items-center gap-1">
+                            <input type="number" name="timestamp_seconds" min="0" placeholder="0" class="w-20 px-2 py-1 text-xs rounded border border-slate-200">
+                            <span>seconds from start (optional)</span>
+                        </label>
+                        <button class="px-3 py-1.5 text-xs rounded bg-slate-900 text-white hover:bg-slate-800">Save note</button>
+                    </div>
+                </form>
+                @php $myLessonNotes = auth()->user()->lessonNotes()->where('lesson_id', $lesson->id)->latest()->take(10)->get(); @endphp
+                @if($myLessonNotes->isNotEmpty())
+                <ul class="divide-y divide-slate-100 mt-3 text-sm">
+                    @foreach($myLessonNotes as $n)
+                    <li class="py-2 flex items-start justify-between gap-2">
+                        <div>
+                            @if($n->timestamp_seconds !== null)<span class="text-[10px] text-slate-400">⏱ {{ $n->formatted_timestamp }}</span>@endif
+                            <p class="text-slate-700 whitespace-pre-wrap">{{ $n->body }}</p>
+                            <p class="text-[10px] text-slate-400">{{ $n->created_at->diffForHumans() }}</p>
+                        </div>
+                        <form method="POST" action="{{ route('student.notes.destroy', $n) }}">
+                            @csrf @method('DELETE')
+                            <button class="text-xs text-rose-400 hover:underline">×</button>
+                        </form>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

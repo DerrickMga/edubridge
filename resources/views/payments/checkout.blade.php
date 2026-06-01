@@ -130,6 +130,15 @@
                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl text-base transition disabled:opacity-40 disabled:cursor-not-allowed">
                 Proceed to payment &rarr;
             </button>
+
+            {{-- Coupon code --}}
+            <div class="card p-4 mt-4">
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Discount code <span class="text-slate-300 normal-case">(optional)</span></label>
+                <input type="text" name="coupon_code" value="{{ old('coupon_code') }}" placeholder="e.g. WELCOME10"
+                       class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 uppercase">
+                @error('coupon_code')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
             <a href="{{ route('courses.index') }}" class="block text-center text-sm text-slate-400 hover:text-slate-600 mt-3">Cancel</a>
         </form>
     </div>

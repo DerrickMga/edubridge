@@ -59,6 +59,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function policyAcknowledgements() { return $this->hasMany(TeacherPolicyAcknowledgement::class, 'teacher_id'); }
     public function riskIncidents()      { return $this->hasMany(PolicyRiskIncident::class, 'teacher_id'); }
 
+    // Marketplace / engagement
+    public function reviews()            { return $this->hasMany(CourseReview::class); }
+    public function wishlist()           { return $this->belongsToMany(Course::class, 'wishlists')->withTimestamps(); }
+    public function lessonNotes()        { return $this->hasMany(LessonNote::class); }
+    public function refundRequests()     { return $this->hasMany(RefundRequest::class); }
+    public function couponRedemptions()  { return $this->hasMany(CouponRedemption::class); }
+
     public function activeContract(): ?TeacherContract
     {
         return $this->contracts()->where('status', 'signed')->latest('signed_at')->first();

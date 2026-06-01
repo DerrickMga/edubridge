@@ -43,6 +43,7 @@
                             <th>Access Period</th>
                             <th>Status</th>
                             <th>Reference</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,6 +74,16 @@
                                 <span class="{{ $cls }}">{{ ucfirst($p->status) }}</span>
                             </td>
                             <td class="text-xs font-mono text-slate-400">{{ $p->provider_reference ?? '—' }}</td>
+                            <td class="text-right">
+                                @if(in_array($p->status, ['completed','paid']))
+                                    @php $hasRefund = $p->refundRequest()->exists(); @endphp
+                                    @if($hasRefund)
+                                        <span class="text-xs text-slate-400">Refund · {{ $p->refundRequest->status }}</span>
+                                    @else
+                                        <a href="{{ route('student.refunds.create', $p) }}" class="text-xs text-rose-600 hover:underline">Request refund</a>
+                                    @endif
+                                @endif
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

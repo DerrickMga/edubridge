@@ -84,6 +84,7 @@ class PaymentController extends Controller
         $request->validate([
             'provider'      => ['required', 'in:stripe,paynow_zw,ecocash,innbucks,payfast'],
             'access_period' => ['required', 'in:hourly,monthly,termly'],
+            'coupon_code'   => ['nullable', 'string', 'max:40'],
         ]);
 
         $isLocal   = $request->user()->country === 'ZW'
@@ -99,15 +100,45 @@ class PaymentController extends Controller
             default                             => 'USD',
         };
 
+        $subtotal = (float) $amount;
+        $discount = 0.0;
+        $coupon   = null;
+
+        if ($request->filled('coupon_code')) {
+            $coupon = \App\Models\Coupon::where('code', strtoupper($request->coupon_code))->first();
+            if (! $coupon
+                || ! $coupon->isValidNow()
+                || ! $coupon->appliesToCourse($course->id)
+                || $coupon->timesUsedBy($request->user()->id) >= (int) $coupon->per_user_limit) {
+                return back()->withErrors(['coupon_code' => 'Coupon is invalid, expired, or no longer applicable.'])->withInput();
+            }
+            $discount = $coupon->discountFor($subtotal, $currency);
+        }
+
+        $finalAmount = max(0, round($subtotal - $discount, 2));
+
         $payment = Payment::create([
-            'user_id'       => $request->user()->id,
-            'course_id'     => $course->id,
-            'amount'        => $amount,
-            'currency'      => $currency,
-            'provider'      => $request->provider,
-            'access_period' => $request->access_period,
-            'status'        => 'pending',
+            'user_id'         => $request->user()->id,
+            'course_id'       => $course->id,
+            'amount'          => $finalAmount,
+            'currency'        => $currency,
+            'provider'        => $request->provider,
+            'access_period'   => $request->access_period,
+            'status'          => 'pending',
+            'subtotal_amount' => $subtotal,
+            'discount_amount' => $discount,
+            'coupon_id'       => $coupon?->id,
         ]);
+
+        if ($coupon && $discount > 0) {
+            \App\Models\CouponRedemption::create([
+                'coupon_id'       => $coupon->id,
+                'user_id'         => $request->user()->id,
+                'payment_id'      => $payment->id,
+                'discount_amount' => $discount,
+                'currency'        => $currency,
+            ]);
+        }
 
         return match ($request->provider) {
             'stripe'    => $this->stripe->redirect($payment, $course),
