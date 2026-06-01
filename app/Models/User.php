@@ -17,6 +17,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'grade_level', 'is_active', 'hourly_rate_usd',
         'avatar', 'bio', 'website', 'linkedin_url', 'twitter_handle', 'qualification',
         'last_seen_at', 'availability_status', 'accepts_assignments', 'timezone',
+        'referral_code', 'referred_by',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -65,6 +66,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function lessonNotes()        { return $this->hasMany(LessonNote::class); }
     public function refundRequests()     { return $this->hasMany(RefundRequest::class); }
     public function couponRedemptions()  { return $this->hasMany(CouponRedemption::class); }
+
+    public function referrer()          { return $this->belongsTo(User::class, 'referred_by'); }
+    public function referrals()         { return $this->hasMany(User::class, 'referred_by'); }
+    public function referralCredits()   { return $this->hasMany(ReferralCredit::class, 'referrer_id'); }
+    public function subscriptions()     { return $this->hasMany(Subscription::class); }
+    public function activeSubscription() { return $this->subscriptions()->where('status', 'active')->where('expires_at', '>', now())->latest('expires_at')->first(); }
 
     public function activeContract(): ?TeacherContract
     {

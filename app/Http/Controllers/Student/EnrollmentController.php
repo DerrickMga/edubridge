@@ -27,6 +27,23 @@ class EnrollmentController extends Controller
                 ->with('info', "You're already enrolled in \"{$course->title}\".");
         }
 
+        // Prerequisite gate
+        if ($course->prerequisite_course_id) {
+            $prereqDone = \App\Models\Certificate::where('student_id', $student->id)
+                ->where('course_id', $course->prerequisite_course_id)->exists();
+            if (! $prereqDone) {
+                $prereq = Course::find($course->prerequisite_course_id);
+                return redirect()->route('courses.show', $course)
+                    ->with('error', 'Complete the prerequisite course first: '.($prereq->title ?? '#'.$course->prerequisite_course_id));
+            }
+        }
+
+        // Active subscription → enrol immediately
+        if ($student->activeSubscription()) {
+            $student->enrollments()->attach($course->id, ['status' => 'active', 'access_period' => 'subscription', 'expires_at' => $student->activeSubscription()->expires_at]);
+            return redirect()->route('student.dashboard')->with('success', "Enrolled in \"{$course->title}\" via your subscription.");
+        }
+
         // Promotional free-pass active?
         $promoUntil = Carbon::parse(Setting::get('promo_free_until', '2026-08-31'))->endOfDay();
         $inPromo    = now()->lte($promoUntil);

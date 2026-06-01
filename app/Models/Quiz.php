@@ -7,9 +7,9 @@ class Quiz extends Model
     protected $fillable = [
         'course_id','lesson_id','teacher_id','title','description',
         'time_limit_minutes','pass_percentage','max_attempts',
-        'show_answers_after','is_published',
+        'show_answers_after','is_published','randomize','questions_per_attempt',
     ];
-    protected $casts = ['is_published' => 'boolean', 'show_answers_after' => 'boolean'];
+    protected $casts = ['is_published' => 'boolean', 'show_answers_after' => 'boolean', 'randomize' => 'boolean'];
 
     public function course()    { return $this->belongsTo(Course::class); }
     public function lesson()    { return $this->belongsTo(Lesson::class); }

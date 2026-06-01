@@ -12,7 +12,7 @@ class Course extends Model
     protected $fillable = [
         'teacher_id','title','description','subject','grade_level',
         'thumbnail','status','price_usd','price_zwg','youtube_playlist_id',
-        'average_rating','reviews_count',
+        'average_rating','reviews_count','prerequisite_course_id',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class Course extends Model
     ];
 
     public function teacher()       { return $this->belongsTo(User::class, 'teacher_id'); }
+    public function prerequisite()   { return $this->belongsTo(Course::class, 'prerequisite_course_id'); }
     public function teachers()      { return $this->belongsToMany(User::class, 'course_teacher', 'course_id', 'teacher_id')->withPivot('role', 'hourly_rate_usd')->withTimestamps(); }
     public function lessons()       { return $this->hasMany(Lesson::class)->orderBy('order'); }
     public function liveSessions()  { return $this->hasMany(LiveSession::class); }
