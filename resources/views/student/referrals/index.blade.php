@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Referrals')
+<x-app-layout>
+    <x-slot name="title">Referrals</x-slot>
 
-@section('content')
-<div class="space-y-6 max-w-3xl">
+    <div class="space-y-6 max-w-3xl">
     <h1 class="text-2xl font-bold text-slate-900">Refer friends, earn credit</h1>
     <p class="text-sm text-slate-500">You earn 10% credit on the first paid order made by anyone who signs up through your link.</p>
 
@@ -40,5 +39,5 @@
         </table>
     </div>
     @endif
-</div>
-@endsection
+    </div>
+</x-app-layout>

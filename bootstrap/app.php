@@ -20,8 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role'     => \App\Http\Middleware\RoleMiddleware::class,
-            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'role'       => \App\Http\Middleware\RoleMiddleware::class,
+            'onboarding' => \App\Http\Middleware\EnsureOnboardingComplete::class,
+            'throttle'   => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);
 
         $middleware->throttleWithRedis();

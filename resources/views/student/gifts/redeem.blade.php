@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Redeem gift')
+<x-app-layout>
+    <x-slot name="title">Redeem Gift</x-slot>
 
-@section('content')
-<div class="max-w-md mx-auto card p-6 mt-10">
+    <div class="max-w-md mx-auto card p-6 mt-10">
     <h1 class="text-xl font-bold text-slate-900 mb-2">You've received a gift! 🎁</h1>
     @if($payment->gift_recipient_name)
         <p class="text-sm text-slate-500">For {{ $payment->gift_recipient_name }}</p>
@@ -20,5 +19,5 @@
             <button class="w-full py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">Redeem &amp; enrol</button>
         </form>
     @endif
-</div>
-@endsection
+    </div>
+</x-app-layout>

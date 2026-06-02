@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\LiveSession;
+use App\Models\SettlementRequest;
 use App\Models\TeacherPaymentItem;
 use Illuminate\Http\Request;
 
@@ -15,9 +16,21 @@ class DashboardController extends Controller
             ->withCount(['enrollments', 'lessons'])
             ->get();
 
-        $earnings = $request->user()->payments()
-            ->where('status', 'paid')
-            ->sum('amount');
+        // Total approved/paid earnings from sessions (TeacherPaymentItem)
+        $userId = $request->user()->id;
+        $earnings = TeacherPaymentItem::where('teacher_id', $userId)
+            ->whereIn('status', ['approved', 'paid'])
+            ->sum('total_usd');
+
+        // Pending (not yet approved) earnings
+        $pendingEarnings = TeacherPaymentItem::where('teacher_id', $userId)
+            ->where('status', 'pending')
+            ->sum('total_usd');
+
+        // Available balance (earned minus settled/in-flight)
+        $totalSettled  = SettlementRequest::where('teacher_id', $userId)->where('status', 'paid')->sum('amount_usd');
+        $inFlight      = SettlementRequest::where('teacher_id', $userId)->whereIn('status', ['pending', 'approved', 'processing'])->sum('amount_usd');
+        $availableBalance = max(0, $earnings - $totalSettled - $inFlight);
 
         $upcoming = LiveSession::where('teacher_id', $request->user()->id)
             ->where('scheduled_at', '>=', now())
@@ -43,8 +56,8 @@ class DashboardController extends Controller
         $totalStudents = $courses->sum('enrollments_count');
 
         return view('teacher.dashboard', compact(
-            'courses', 'earnings', 'upcoming', 'totalStudents',
-            'pastSessions', 'pendingPayments'
+            'courses', 'earnings', 'pendingEarnings', 'availableBalance',
+            'upcoming', 'totalStudents', 'pastSessions', 'pendingPayments'
         ));
     }
 }

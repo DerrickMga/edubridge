@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'My Wishlist')
+<x-app-layout>
+    <x-slot name="title">My Wishlist</x-slot>
 
-@section('content')
-<div class="space-y-5">
+    <div class="space-y-5">
     <div class="flex items-end justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-900">Wishlist</h1>
@@ -33,7 +32,7 @@
             </div>
             <div class="flex gap-2 mt-2">
                 <a href="{{ route('courses.show', $c) }}" class="flex-1 text-center text-xs px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800">View</a>
-                <form method="POST" action="{{ route('student.wishlist.toggle', $c) }}">
+                <form method="POST" action="{{ route('wishlist.toggle', $c) }}">
                     @csrf
                     <button class="text-xs px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Remove</button>
                 </form>
@@ -43,5 +42,5 @@
     </div>
     {{ $items->links() }}
     @endif
-</div>
-@endsection
+    </div>
+</x-app-layout>

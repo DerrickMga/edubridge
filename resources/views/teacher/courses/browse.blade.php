@@ -44,7 +44,7 @@
             'agriculture' => 'from-green-400 to-lime-500',
             'shona' => 'from-red-400 to-rose-600',
             'ndebele' => 'from-red-500 to-orange-500',
-            default => 'from-slate-400 to-slate-600',
+            'default' => 'from-slate-400 to-slate-600',
         ];
     @endphp
 
@@ -56,19 +56,16 @@
         @php
             $key   = strtolower($course->subject ?? '');
             $color = $subjectColors[$key] ?? $subjectColors['default'];
-            $mine  = $course->teacher_id === auth()->id();
-            $taken = !$mine && !is_null($course->teacher_id);
+            $mine  = $course->isMine;
         @endphp
-        <div class="card overflow-hidden {{ $taken ? 'opacity-60' : '' }}">
+        <div class="card overflow-hidden">
             <div class="h-20 bg-gradient-to-br {{ $color }} relative">
                 <div class="h-full flex items-end justify-between p-3 pb-2">
                     <span class="text-xs font-bold text-white/80 uppercase tracking-wide">{{ $course->subject }}</span>
                     @if($mine)
-                    <span class="text-xs font-bold bg-white/20 text-white rounded-full px-2 py-0.5">Your course</span>
-                    @elseif($taken)
-                    <span class="text-xs font-bold bg-black/20 text-white rounded-full px-2 py-0.5">Assigned</span>
+                    <span class="text-xs font-bold bg-white/20 text-white rounded-full px-2 py-0.5">Teaching</span>
                     @else
-                    <span class="text-xs font-bold bg-white/20 text-white rounded-full px-2 py-0.5">Available</span>
+                    <span class="text-xs font-bold bg-white/20 text-white rounded-full px-2 py-0.5">{{ $course->teachers_count }} {{ Str::plural('teacher', $course->teachers_count) }}</span>
                     @endif
                 </div>
             </div>
@@ -81,22 +78,28 @@
                 @endif
 
                 @if($mine)
-                <a href="{{ route('teacher.courses.show', $course) }}"
-                   class="btn-primary btn-sm w-full justify-center">
-                    Manage Course
-                </a>
-                @elseif(!$taken)
-                <form action="{{ route('teacher.courses.claim', $course) }}" method="POST">
+                <div class="flex gap-2">
+                    <a href="{{ route('teacher.courses.show', $course) }}"
+                       class="btn-primary btn-sm flex-1 justify-center">
+                        Manage
+                    </a>
+                    <form action="{{ route('teacher.courses.leave', $course) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn-secondary btn-sm"
+                                onclick="return confirm('Leave {{ addslashes($course->title) }}?')">
+                            Leave
+                        </button>
+                    </form>
+                </div>
+                @else
+                <form action="{{ route('teacher.courses.join', $course) }}" method="POST">
                     @csrf
                     <button type="submit"
-                            class="btn-primary btn-sm w-full justify-center bg-emerald-600 hover:bg-emerald-700"
-                            onclick="return confirm('Claim {{ addslashes($course->title) }} as your course?')">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Teach this course
+                            class="btn-primary btn-sm w-full justify-center bg-emerald-600 hover:bg-emerald-700">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Join &amp; Teach
                     </button>
                 </form>
-                @else
-                <p class="text-xs text-slate-400 text-center py-1">Assigned to another teacher</p>
                 @endif
             </div>
         </div>

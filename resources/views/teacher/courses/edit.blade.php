@@ -63,14 +63,14 @@
             </div>
         </form>
 
-        {{-- Release course --}}
+        {{-- Leave course --}}
         <div class="mt-8 card border-amber-200 p-5">
-            <h3 class="font-semibold text-amber-700 mb-1">Release Course</h3>
-            <p class="text-sm text-slate-500 mb-4">Return this course to the available pool so another teacher can claim it. Students will retain their enrolments.</p>
-            <form method="POST" action="{{ route('teacher.courses.release', $course) }}"
-                  onsubmit="return confirm('Release this course back to the catalogue?')">
+            <h3 class="font-semibold text-amber-700 mb-1">Leave Course</h3>
+            <p class="text-sm text-slate-500 mb-4">Remove yourself from the teaching team for this course. Students will retain their enrolments and other teachers remain unaffected.</p>
+            <form method="POST" action="{{ route('teacher.courses.leave', $course) }}"
+                  onsubmit="return confirm('Remove yourself from this course?')">
                 @csrf
-                <button type="submit" class="btn-secondary border-amber-300 text-amber-700 hover:bg-amber-50">Release Course</button>
+                <button type="submit" class="btn-secondary border-amber-300 text-amber-700 hover:bg-amber-50">Leave Course</button>
             </form>
         </div>
     </div>

@@ -7,16 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class SettlementRequest extends Model
 {
     protected $fillable = [
-        'teacher_id', 'amount_usd', 'payment_method',
-        'payout_details', 'status', 'reference_number',
+        'teacher_id', 'amount_usd', 'settlement_fee_pct', 'settlement_fee_usd', 'net_amount_usd',
+        'payment_method', 'payout_details', 'status', 'reference_number',
         'teacher_notes', 'admin_notes',
         'processed_by', 'processed_at',
     ];
 
     protected $casts = [
-        'payout_details' => 'array',
-        'processed_at'   => 'datetime',
-        'amount_usd'     => 'decimal:2',
+        'payout_details'      => 'array',
+        'processed_at'        => 'datetime',
+        'amount_usd'          => 'decimal:2',
+        'settlement_fee_pct'  => 'decimal:2',
+        'settlement_fee_usd'  => 'decimal:2',
+        'net_amount_usd'      => 'decimal:2',
     ];
 
     const STATUS_PENDING    = 'pending';

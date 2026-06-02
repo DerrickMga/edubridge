@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Announcements')
+<x-app-layout>
+    <x-slot name="title">Announcements</x-slot>
 
-@section('content')
-<div class="space-y-4 max-w-3xl">
+    <div class="space-y-4 max-w-3xl">
     <h1 class="text-2xl font-bold text-slate-900">Announcements</h1>
 
     @forelse($announcements as $a)
@@ -24,5 +23,5 @@
     @endforelse
 
     {{ $announcements->links() }}
-</div>
-@endsection
+    </div>
+</x-app-layout>

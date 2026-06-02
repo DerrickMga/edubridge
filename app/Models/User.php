@@ -18,6 +18,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar', 'bio', 'website', 'linkedin_url', 'twitter_handle', 'qualification',
         'last_seen_at', 'availability_status', 'accepts_assignments', 'timezone',
         'referral_code', 'referred_by',
+        'onboarding_completed_at',
+        'phone_otp_code', 'phone_otp_expires_at', 'phone_verified_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -29,8 +31,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'password'             => 'hashed',
             'is_active'            => 'boolean',
             'last_seen_at'         => 'datetime',
-            'accepts_assignments'  => 'boolean',
+            'accepts_assignments'            => 'boolean',
+            'onboarding_completed_at'         => 'datetime',
+            'phone_otp_expires_at'            => 'datetime',
+            'phone_verified_at'               => 'datetime',
         ];
+    }
+
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed_at !== null;
     }
 
     public function isAdmin(): bool    { return $this->role === 'admin'; }
@@ -50,7 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function equipmentLoans()    { return $this->hasMany(EquipmentLoanApplication::class, 'teacher_id'); }
 
     // Workforce / Rota
-    public function taughtCourses()     { return $this->belongsToMany(Course::class, 'course_teacher', 'teacher_id', 'course_id')->withPivot('role', 'hourly_rate_usd')->withTimestamps(); }
+    public function taughtCourses()     { return $this->belongsToMany(Course::class, 'course_teacher', 'teacher_id', 'course_id')->withPivot('role', 'hourly_rate_usd', 'preferred_topics', 'notes')->withTimestamps(); }
     public function shifts()            { return $this->hasMany(TeacherShift::class, 'teacher_id'); }
     public function availabilityWindows(){ return $this->hasMany(TeacherAvailability::class, 'teacher_id'); }
     public function timeOff()           { return $this->hasMany(TeacherTimeOff::class, 'teacher_id'); }

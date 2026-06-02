@@ -24,28 +24,43 @@
         <form method="POST" action="{{ route('teacher.courses.store') }}" class="space-y-5">
             @csrf
             <div class="card p-6 space-y-5">
-                <div class="form-group">
-                    <label class="form-label">Course Title</label>
-                    <input type="text" name="title" value="{{ old('title') }}" class="form-input" required
-                           placeholder="e.g. Mathematics — O-Level Revision 2026">
-                    @error('title')<p class="form-error">{{ $message }}</p>@enderror
-                </div>
 
                 <div class="grid sm:grid-cols-2 gap-5">
                     <div class="form-group">
                         <label class="form-label">Subject</label>
-                        <input type="text" name="subject" value="{{ old('subject') }}" class="form-input"
-                               placeholder="e.g. Mathematics" required>
+                        <select id="subject" name="subject" class="form-select" required>
+                            <option value="">Select subject…</option>
+                            @foreach([
+                                'Mathematics','Further Mathematics','English Language','English Literature',
+                                'Physics','Chemistry','Biology','Combined Science',
+                                'History','Geography',
+                                'Business Studies','Commerce','Accounting','Economics',
+                                'Computer Science','Agriculture',
+                                'Shona','Ndebele','French','Art','Music','Physical Education'
+                            ] as $subj)
+                            <option value="{{ $subj }}" {{ old('subject') === $subj ? 'selected' : '' }}>{{ $subj }}</option>
+                            @endforeach
+                        </select>
+                        @error('subject')<p class="form-error">{{ $message }}</p>@enderror
                     </div>
                     <div class="form-group">
                         <label class="form-label">Grade Level</label>
-                        <select name="grade_level" class="form-select" required>
+                        <select id="grade_level" name="grade_level" class="form-select" required>
                             <option value="">Select grade…</option>
                             @foreach(['Form 1','Form 2','Form 3','Form 4 (O-Level)','Form 5 (O-Level)','Lower 6 (A-Level)','Upper 6 (A-Level)'] as $grade)
                             <option value="{{ $grade }}" {{ old('grade_level') === $grade ? 'selected' : '' }}>{{ $grade }}</option>
                             @endforeach
                         </select>
+                        @error('grade_level')<p class="form-error">{{ $message }}</p>@enderror
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Course Title</label>
+                    <input type="text" id="title" name="title" value="{{ old('title') }}" class="form-input" required
+                           placeholder="Select subject and grade above to auto-fill">
+                    <p class="form-hint">Auto-filled from subject &amp; grade — edit only if you need a custom title.</p>
+                    @error('title')<p class="form-error">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="form-group">
@@ -76,9 +91,39 @@
             </div>
 
             <div class="flex gap-3 justify-end">
-                <a href="{{ route('teacher.dashboard') }}" class="btn-secondary">Cancel</a>
+                <a href="{{ route('teacher.courses.index') }}" class="btn-secondary">Cancel</a>
                 <button type="submit" class="btn-primary">Create Course</button>
             </div>
         </form>
     </div>
+
+    <script>
+    (function () {
+        const subjectEl = document.getElementById('subject');
+        const gradeEl   = document.getElementById('grade_level');
+        const titleEl   = document.getElementById('title');
+        const userEdited = titleEl.value !== '';  // pre-filled by old() on validation fail
+
+        function autoFill() {
+            if (userEdited) return;
+            const s = subjectEl.value;
+            const g = gradeEl.value;
+            if (s && g) {
+                titleEl.value = s + ' \u2014 ' + g;
+            } else if (s) {
+                titleEl.value = s;
+            }
+        }
+
+        subjectEl.addEventListener('change', autoFill);
+        gradeEl.addEventListener('change', autoFill);
+
+        // Allow manual override — once user types, stop auto-filling
+        titleEl.addEventListener('input', function () {
+            // mark as user-edited by detaching auto-fill
+            subjectEl.removeEventListener('change', autoFill);
+            gradeEl.removeEventListener('change', autoFill);
+        });
+    })();
+    </script>
 </x-app-layout>

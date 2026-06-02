@@ -1,9 +1,8 @@
-@extends('layouts.app')
-@section('page-title', $plan->exists ? 'Edit plan' : 'New plan')
+<x-app-layout>
+    <x-slot name="title">{{ $plan->exists ? 'Edit Plan' : 'New Plan' }} — Admin</x-slot>
 
-@section('content')
-@php $isEdit = $plan->exists; @endphp
-<div class="max-w-2xl space-y-5">
+    @php $isEdit = $plan->exists; @endphp
+    <div class="max-w-2xl space-y-5">
     <h1 class="text-2xl font-bold text-slate-900">{{ $isEdit ? 'Edit plan' : 'New plan' }}</h1>
 
     @if($errors->any())<div class="px-4 py-2 rounded bg-rose-50 text-rose-800 text-sm">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
@@ -47,5 +46,5 @@
             <button class="px-3 py-2 text-sm rounded-lg bg-slate-900 text-white">{{ $isEdit ? 'Save' : 'Create' }}</button>
         </div>
     </form>
-</div>
-@endsection
+    </div>
+</x-app-layout>

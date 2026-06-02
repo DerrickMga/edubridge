@@ -5,11 +5,12 @@ use App\Models\{Course, User};
 
 class CoursePolicy
 {
-    /** Teacher can claim a course that has no teacher, or admin can always claim */
+    /** Any authenticated teacher (or admin) can claim a course to teach it */
     public function claim(User $user, Course $course): bool
     {
         if ($user->isAdmin()) return true;
-        return is_null($course->teacher_id);
+        // Teacher can claim any course that isn't already theirs
+        return $course->teacher_id !== $user->id;
     }
 
     public function update(User $user, Course $course): bool

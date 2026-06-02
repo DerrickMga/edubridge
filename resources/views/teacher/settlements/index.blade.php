@@ -47,7 +47,20 @@
 
         {{-- New request form --}}
         @if(auth()->user()->is_verified && $availableBalance > 0)
-        <div class="card p-6" x-data="{ method: 'bank_transfer' }">
+        <script>window._settlementFees = @json($settlementFees);</script>
+        <div class="card p-6"
+             x-data="{
+                 method: 'omari', amount: '', feePct: 1.5, feeAmt: 0, netAmt: 0,
+                 fees: window._settlementFees,
+                 recalc() {
+                     var pct = this.fees[this.method] || 3.5;
+                     var a   = parseFloat(this.amount) || 0;
+                     this.feePct = pct;
+                     this.feeAmt = a > 0 ? Math.round(a * pct / 100 * 100) / 100 : 0;
+                     this.netAmt = a > 0 ? Math.round((a - this.feeAmt) * 100) / 100 : 0;
+                 }
+             }"
+             x-init="recalc(); $watch('method', () => recalc()); $watch('amount', () => recalc())">
             <h2 class="section-title mb-5">Request New Settlement</h2>
 
             <form method="POST" action="{{ route('teacher.settlements.store') }}" class="space-y-5">
@@ -59,6 +72,7 @@
                         <div class="relative">
                             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">$</span>
                             <input type="number" step="0.01" min="5" max="{{ $availableBalance }}" id="amount_usd" name="amount_usd"
+                                   x-model="amount"
                                    value="{{ old('amount_usd') }}" class="form-input pl-8"
                                    placeholder="{{ number_format($availableBalance, 2) }}">
                         </div>
@@ -70,51 +84,73 @@
                         <label class="form-label">Payment Method</label>
                         <div class="grid grid-cols-2 gap-2">
                             @foreach([
-                                ['bank_transfer', '🏦', 'Bank Transfer'],
-                                ['ecocash',       '📱', 'EcoCash'],
-                                ['innbucks',      '💚', 'InnBucks'],
-                                ['paynow',        '💳', 'Paynow'],
-                            ] as [$val, $icon, $label])
-                            <label class="cursor-pointer">
-                                <input type="radio" name="payment_method" value="{{ $val }}" x-model="method" class="sr-only">
+                                ['omari',        '🟢', "O'mari Wallet"],
+                                ['cash_token',   '🏧', 'Cash Token'],
+                                ['paystack',     '🇿🇦', 'Paystack SA'],
+                                ['bank_transfer','🏦', 'Bank Transfer'],
+                                ['ecocash',      '📱', 'EcoCash'],
+                                ['innbucks',     '💚', 'InnBucks'],
+                                ['paynow',       '💳', 'Paynow'],
+                            ] as [$val, $icon, $lbl])
+                            <div @click="method = '{{ $val }}'" class="cursor-pointer select-none">
                                 <div class="border-2 rounded-xl px-3 py-2.5 text-center transition-all text-sm font-medium"
                                      :class="method === '{{ $val }}' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-slate-200 hover:border-slate-300 text-slate-600'">
-                                    {{ $icon }} {{ $label }}
+                                    {{ $icon }} {{ $lbl }}
+                                    <span class="block text-xs mt-0.5 opacity-70">{{ $settlementFees[$val] ?? 3.5 }}% fee</span>
                                 </div>
-                            </label>
+                            </div>
                             @endforeach
                         </div>
+                        <input type="hidden" name="payment_method" :value="method">
                         @error('payment_method') <p class="form-error">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
+                {{-- Fee preview banner --}}
+                <div x-show="amount > 0" class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 flex flex-wrap gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-400">You request</span>
+                        <span class="font-semibold text-slate-800 ml-1">$<span x-text="(parseFloat(amount)||0).toFixed(2)"></span></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">Settlement fee (<span x-text="feePct"></span>%)</span>
+                        <span class="font-semibold text-rose-600 ml-1">−$<span x-text="feeAmt.toFixed(2)"></span></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">You receive</span>
+                        <span class="font-bold text-emerald-600 ml-1">$<span x-text="netAmt.toFixed(2)"></span></span>
+                    </div>
+                </div>
+
                 {{-- Payout details (conditional) --}}
-                @php
-                    $v = auth()->user()->verification;
-                @endphp
+                @php $v = auth()->user()->verification; @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label class="form-label" for="payout_account_name">Account Name</label>
+                        <label class="form-label" for="payout_account_name">Account / Wallet Name</label>
                         <input type="text" id="payout_account_name" name="payout_details[account_name]"
                                value="{{ old('payout_details.account_name', $v?->full_legal_name) }}" class="form-input" required>
                         @error('payout_details.account_name') <p class="form-error">{{ $message }}</p> @enderror
                     </div>
 
-                    <div x-show="method === 'bank_transfer'" class="form-group">
-                        <label class="form-label">Bank Name</label>
+                    <div x-show="['bank_transfer','paystack'].includes(method)" class="form-group">
+                        <label class="form-label" x-text="method === 'paystack' ? 'Bank Name (SA)' : 'Bank Name'"></label>
                         <input type="text" name="payout_details[bank_name]"
-                               value="{{ old('payout_details.bank_name', $v?->bank_name) }}" class="form-input" placeholder="CBZ Bank">
+                               value="{{ old('payout_details.bank_name', $v?->bank_name) }}" class="form-input"
+                               :placeholder="method === 'paystack' ? 'FNB / Standard Bank SA' : 'CBZ Bank'">
                     </div>
 
-                    <div x-show="method !== 'paynow'" class="form-group">
-                        <label class="form-label" x-text="method === 'bank_transfer' ? 'Account Number' : 'Mobile Number'"></label>
+                    <div x-show="!['paynow','paystack'].includes(method)" class="form-group">
+                        <label class="form-label"
+                               x-text="method === 'bank_transfer' ? 'Account Number'
+                                      : (method === 'omari' || method === 'cash_token') ? 'O\'mari / Mobile Number'
+                                      : 'Mobile Number'"></label>
                         <input type="text" name="payout_details[account_number]"
                                value="{{ old('payout_details.account_number') }}" class="form-input"
                                :placeholder="method === 'bank_transfer' ? '0012345678' : '0771234567'">
                     </div>
 
-                    <div x-show="method === 'paynow'" class="form-group">
-                        <label class="form-label">Paynow Email</label>
+                    <div x-show="['paynow','paystack'].includes(method)" class="form-group">
+                        <label class="form-label" x-text="method === 'paystack' ? 'Paystack Email' : 'Paynow Email'"></label>
                         <input type="email" name="payout_details[email]"
                                value="{{ old('payout_details.email', $v?->paynow_email) }}" class="form-input">
                     </div>
@@ -149,7 +185,9 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Amount</th>
+                            <th>Requested</th>
+                            <th>Fee</th>
+                            <th>You Receive</th>
                             <th>Method</th>
                             <th>Status</th>
                             <th>Reference</th>
@@ -161,6 +199,17 @@
                         <tr>
                             <td class="text-slate-500 text-xs">{{ $s->created_at->format('d M Y') }}</td>
                             <td class="font-semibold">${{ number_format($s->amount_usd, 2) }}</td>
+                            <td class="text-xs text-rose-600">
+                                @if($s->settlement_fee_usd > 0)
+                                    −${{ number_format($s->settlement_fee_usd, 2) }}
+                                    <span class="text-slate-400">({{ $s->settlement_fee_pct }}%)</span>
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="font-bold text-emerald-600">
+                                ${{ number_format($s->net_amount_usd > 0 ? $s->net_amount_usd : $s->amount_usd, 2) }}
+                            </td>
                             <td class="capitalize text-sm">{{ str_replace('_', ' ', $s->payment_method) }}</td>
                             <td><span class="{{ $s->statusBadgeClass() }}">{{ $s->statusLabel() }}</span></td>
                             <td class="text-xs font-mono text-slate-500">{{ $s->reference_number ?? '—' }}</td>

@@ -61,10 +61,12 @@
         <div class="stat-card border-l-4 border-violet-400">
             <p class="stat-value text-violet-700">${{ number_format($earnings, 2) }}</p>
             <p class="stat-label">Earnings (USD)</p>
+            <p class="text-xs text-slate-400 mt-0.5">Approved sessions</p>
         </div>
-        <div class="stat-card border-l-4 border-amber-400">
-            <p class="stat-value text-amber-600">{{ $upcoming->count() }}</p>
-            <p class="stat-label">Upcoming sessions</p>
+        <div class="stat-card border-l-4 border-emerald-400">
+            <p class="stat-value text-emerald-600">${{ number_format($availableBalance, 2) }}</p>
+            <p class="stat-label">Available Balance</p>
+            <a href="{{ route('teacher.settlements.index') }}" class="text-xs text-emerald-600 hover:underline mt-0.5 inline-block">Withdraw →</a>
         </div>
     </div>
 

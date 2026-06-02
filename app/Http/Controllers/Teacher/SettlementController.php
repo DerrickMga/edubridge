@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\SettlementRequest;
 use App\Models\TeacherPaymentItem;
+use App\Services\SettlementFeeService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,8 +37,13 @@ class SettlementController extends Controller
         // Get teacher's verification payout details
         $verification = $user->verification;
 
+        $paymentMethods = SettlementFeeService::$labels;
+        $settlementFees = SettlementFeeService::$fees;
+
         return view('teacher.settlements.index', compact(
-            'settlements', 'totalEarned', 'totalSettled', 'pendingSettled', 'availableBalance', 'verification'
+            'settlements', 'totalEarned', 'totalSettled', 'pendingSettled',
+            'availableBalance', 'verification',
+            'paymentMethods', 'settlementFees'
         ));
     }
 
@@ -65,12 +71,12 @@ class SettlementController extends Controller
 
         $data = $request->validate([
             'amount_usd'     => ['required', 'numeric', 'min:5', 'max:50000'],
-            'payment_method' => ['required', 'in:bank_transfer,ecocash,innbucks,paynow'],
+            'payment_method' => ['required', 'in:omari,paystack,bank_transfer,ecocash,innbucks,paynow,cash_token'],
             'payout_details' => ['required', 'array'],
             'payout_details.account_name'   => ['required', 'string', 'max:255'],
-            'payout_details.account_number' => ['required_if:payment_method,bank_transfer,ecocash,innbucks', 'nullable', 'string', 'max:50'],
-            'payout_details.bank_name'      => ['required_if:payment_method,bank_transfer', 'nullable', 'string', 'max:100'],
-            'payout_details.email'          => ['required_if:payment_method,paynow', 'nullable', 'email'],
+            'payout_details.account_number' => ['required_if:payment_method,bank_transfer,ecocash,innbucks,omari,cash_token', 'nullable', 'string', 'max:50'],
+            'payout_details.bank_name'      => ['required_if:payment_method,bank_transfer,paystack', 'nullable', 'string', 'max:100'],
+            'payout_details.email'          => ['required_if:payment_method,paynow,paystack', 'nullable', 'email'],
             'teacher_notes'  => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -84,16 +90,22 @@ class SettlementController extends Controller
             return back()->withErrors(['amount_usd' => "Requested amount exceeds your available balance of \${$available}."])->withInput();
         }
 
+        // Calculate settlement fee
+        $fees = SettlementFeeService::calculate((float) $data['amount_usd'], $data['payment_method']);
+
         SettlementRequest::create([
-            'teacher_id'     => $user->id,
-            'amount_usd'     => $data['amount_usd'],
-            'payment_method' => $data['payment_method'],
-            'payout_details' => $data['payout_details'],
-            'teacher_notes'  => $data['teacher_notes'] ?? null,
-            'status'         => 'pending',
+            'teacher_id'         => $user->id,
+            'amount_usd'         => $data['amount_usd'],
+            'settlement_fee_pct' => $fees['fee_pct'],
+            'settlement_fee_usd' => $fees['fee_usd'],
+            'net_amount_usd'     => $fees['net_usd'],
+            'payment_method'     => $data['payment_method'],
+            'payout_details'     => $data['payout_details'],
+            'teacher_notes'      => $data['teacher_notes'] ?? null,
+            'status'             => 'pending',
         ]);
 
         return redirect()->route('teacher.settlements.index')
-            ->with('success', 'Settlement request of $' . number_format($data['amount_usd'], 2) . ' submitted. We\'ll process within 3–5 business days.');
+            ->with('success', 'Settlement request of $' . number_format($data['amount_usd'], 2) . ' submitted (fee: $' . number_format($fees['fee_usd'], 2) . ' — you receive $' . number_format($fees['net_usd'], 2) . '). We\'ll process within 3–5 business days.');
     }
 }

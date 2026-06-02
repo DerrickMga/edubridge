@@ -151,5 +151,77 @@
             </ul>
             @endif
         </div>
+
+        {{-- Teaching Team --}}
+        <div class="card overflow-hidden mb-4">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="font-semibold text-slate-900">Teaching Team ({{ $course->teachers->count() }})</h2>
+                <form action="{{ route('teacher.courses.leave', $course) }}" method="POST"
+                      onsubmit="return confirm('Leave this course?')">
+                    @csrf
+                    <button type="submit" class="btn-secondary btn-sm text-rose-600 hover:text-rose-700">Leave course</button>
+                </form>
+            </div>
+            <ul class="divide-y divide-slate-100">
+                @foreach($course->teachers as $t)
+                @php
+                    $roleLabel = match($t->pivot->role ?? 'co_teacher') {
+                        'lead'         => 'Curriculum & Content Team',
+                        'content_team' => 'Curriculum & Content Team',
+                        'primary'      => 'Lead Teacher',
+                        'co_teacher'   => 'Co-Teacher',
+                        'substitute'   => 'Substitute Teacher',
+                        default        => ucwords(str_replace('_', ' ', $t->pivot->role ?? 'co_teacher')),
+                    };
+                    $roleColor = match($t->pivot->role ?? 'co_teacher') {
+                        'lead', 'content_team' => 'text-violet-500',
+                        'primary'              => 'text-emerald-600',
+                        default                => 'text-slate-400',
+                    };
+                @endphp
+                <li class="px-5 py-3 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 flex-shrink-0">
+                        {{ strtoupper(substr($t->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-900 truncate">{{ $t->name }}</p>
+                        <p class="text-xs {{ $roleColor }}">{{ $roleLabel }}</p>
+                    </div>
+                </li>
+                @endforeach
+            </ul>
+        </div>
+
+        {{-- My Preferred Topics --}}
+        <div class="card overflow-hidden mb-4">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h2 class="font-semibold text-slate-900">My Preferred Topics</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Select lessons you specialise in so the rota can allocate you appropriately.</p>
+            </div>
+            <form action="{{ route('teacher.courses.topics', $course) }}" method="POST" class="p-5 space-y-4">
+                @csrf
+                @if($course->lessons->isEmpty())
+                <p class="text-sm text-slate-400">No lessons added yet.</p>
+                @else
+                <div class="grid sm:grid-cols-2 gap-2">
+                    @foreach($course->lessons->sortBy('order') as $lesson)
+                    <label class="flex items-center gap-3 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" name="preferred_topics[]" value="{{ $lesson->id }}"
+                               class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                               {{ in_array($lesson->id, $myTopicIds) ? 'checked' : '' }}>
+                        <span class="text-sm text-slate-700 leading-snug">{{ $lesson->title }}</span>
+                    </label>
+                    @endforeach
+                </div>
+                @endif
+                <div class="form-group mb-0">
+                    <label class="form-label text-xs">Notes (optional)</label>
+                    <textarea name="notes" class="form-textarea" rows="2"
+                              placeholder="e.g. I'm best at calculus topics, available Mon/Wed evenings">{{ $myPivot?->notes }}</textarea>
+                </div>
+                <button type="submit" class="btn-primary btn-sm">Save Preferences</button>
+            </form>
+        </div>
+
     </div>
 </x-app-layout>

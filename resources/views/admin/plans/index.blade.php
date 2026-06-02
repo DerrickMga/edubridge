@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Subscription Plans')
+<x-app-layout>
+    <x-slot name="title">Subscription Plans — Admin</x-slot>
 
-@section('content')
-<div class="space-y-5">
+    <div class="space-y-5">
     <div class="flex items-end justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-900">Subscription Plans</h1>
@@ -38,5 +37,5 @@
         </table>
     </div>
     {{ $plans->links() }}
-</div>
-@endsection
+    </div>
+</x-app-layout>

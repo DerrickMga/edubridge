@@ -206,20 +206,28 @@ PERSONA;
 
     public function __construct()
     {
-        $this->apiKey  = config('services.openai.api_key', '');
-        $this->model   = config('services.openai.companion_model', 'gpt-4o');
-        $this->baseUrl = config('services.openai.base_url', 'https://api.openai.com/v1');
+        // Primary: Groq (free tier, OpenAI-compatible). Falls back to OpenAI if Groq key absent.
+        $groqKey = config('services.groq.api_key', '');
+        if ($groqKey) {
+            $this->apiKey  = $groqKey;
+            $this->model   = config('services.groq.model', 'llama-3.3-70b-versatile');
+            $this->baseUrl = 'https://api.groq.com/openai/v1';
+        } else {
+            $this->apiKey  = config('services.openai.api_key', '');
+            $this->model   = config('services.openai.companion_model', 'gpt-4o');
+            $this->baseUrl = config('services.openai.base_url', 'https://api.openai.com/v1');
+        }
     }
 
     /**
-     * Chat as Chiedza — GPT-4o with a Zimbabwean study companion persona.
+     * Chat as Chiedza — Groq/Llama-3.3-70B with a Zimbabwean study companion persona.
      *
      * @param  array<array{role: string, content: string}>  $messages
      */
     public function chat(array $messages, string $system = null): string
     {
         if (empty($this->apiKey)) {
-            Log::warning('ClaudeService (Chiedza): OpenAI API key not configured.');
+            Log::warning('ClaudeService (Chiedza): AI API key not configured.');
             return "I'm Chiedza, your AI study companion. I'm not fully set up yet — please contact your administrator.";
         }
 
@@ -242,12 +250,13 @@ PERSONA;
             ]);
 
         if ($response->failed()) {
-            Log::error('ClaudeService (Chiedza): OpenAI request failed', [
-                'status' => $response->status(),
-                'body'   => substr($response->body(), 0, 500),
+            Log::error('ClaudeService (Chiedza): AI request failed', [
+                'status'   => $response->status(),
+                'provider' => $this->baseUrl,
+                'body'     => substr($response->body(), 0, 500),
             ]);
             throw new RuntimeException(
-                'Chiedza (OpenAI) request failed (' . $response->status() . '): ' . $response->body()
+                'Chiedza AI request failed (' . $response->status() . '): ' . $response->body()
             );
         }
 

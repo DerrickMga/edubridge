@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Subscriptions')
+<x-app-layout>
+    <x-slot name="title">Subscriptions</x-slot>
 
-@section('content')
-<div class="space-y-6 max-w-4xl">
+    <div class="space-y-6 max-w-4xl">
     <div>
         <h1 class="text-2xl font-bold text-slate-900">All-Access Subscriptions</h1>
         <p class="text-sm text-slate-500">One plan, every course, no extra checkout.</p>
@@ -59,5 +58,5 @@
         </table>
     </div>
     @endif
-</div>
-@endsection
+    </div>
+</x-app-layout>

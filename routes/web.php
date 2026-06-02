@@ -28,6 +28,8 @@ use App\Http\Controllers\Admin\TeacherPaymentController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Teacher\ResourceController;
 use App\Http\Controllers\Student\ResourceController as StudentResourceController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\Auth\PhoneOtpController;
 use App\Http\Controllers\Teacher\AiToolsController;
 use App\Http\Controllers\Teacher\VerificationController as TeacherVerificationController;
 use App\Http\Controllers\Teacher\SettlementController as TeacherSettlementController;
@@ -106,6 +108,13 @@ Route::get('/verify/{number}', function (string $number) {
 
 require __DIR__.'/auth.php';
 
+// ─── Onboarding wizard ────────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/onboarding/{step?}', [OnboardingController::class, 'show'])->name('onboarding')->where('step', '[1-4]');
+    Route::post('/onboarding/{step}/save', [OnboardingController::class, 'save'])->name('onboarding.save')->where('step', '[1-4]');
+    Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
+});
+
 Route::get('/dashboard', function () {
     $user = auth()->user();
     return match ($user->role) {
@@ -115,7 +124,7 @@ Route::get('/dashboard', function () {
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'role:student,admin'])->group(function () {
+Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'onboarding', 'role:student,admin'])->group(function () {
     Route::get('dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
     Route::get('lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
 
@@ -228,14 +237,17 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('referrals', [\App\Http\Controllers\Student\ReferralController::class, 'index'])->name('referrals.index');
 });
 
-Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher,admin'])->group(function () {
+Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'onboarding', 'role:teacher,admin'])->group(function () {
     Route::get('dashboard', [TeacherDashboard::class, 'index'])->name('dashboard');
 
-    // Courses — teachers browse & claim; no create/delete at teacher level
+    // Courses
     Route::get('courses',                        [TeacherCourseController::class, 'index'])->name('courses.index');
+    Route::get('courses/create',                 [TeacherCourseController::class, 'create'])->name('courses.create');
+    Route::post('courses',                       [TeacherCourseController::class, 'store'])->name('courses.store');
     Route::get('courses/browse',                 [TeacherCourseController::class, 'browse'])->name('courses.browse');
-    Route::post('courses/{course}/claim',        [TeacherCourseController::class, 'claim'])->name('courses.claim');
-    Route::post('courses/{course}/release',      [TeacherCourseController::class, 'release'])->name('courses.release');
+    Route::post('courses/{course}/join',         [TeacherCourseController::class, 'join'])->name('courses.join');
+    Route::post('courses/{course}/leave',        [TeacherCourseController::class, 'leave'])->name('courses.leave');
+    Route::post('courses/{course}/topics',       [TeacherCourseController::class, 'updateTopics'])->name('courses.topics');
     Route::get('courses/{course}',               [TeacherCourseController::class, 'show'])->name('courses.show');
     Route::get('courses/{course}/edit',          [TeacherCourseController::class, 'edit'])->name('courses.edit');
     Route::put('courses/{course}',               [TeacherCourseController::class, 'update'])->name('courses.update');
@@ -452,6 +464,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
 });
 
 Route::middleware('auth')->group(function () {
+    // Phone / WhatsApp OTP verification
+    Route::get('phone/verify',          [PhoneOtpController::class, 'show'])->name('phone.verify');
+    Route::post('phone/verify/send',    [PhoneOtpController::class, 'send'])->name('phone.verify.send')->middleware('throttle:3,1');
+    Route::post('phone/verify/confirm', [PhoneOtpController::class, 'confirm'])->name('phone.verify.confirm');
+    Route::post('phone/verify/skip',    [PhoneOtpController::class, 'skip'])->name('phone.verify.skip');
+
     Route::get('profile',    [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

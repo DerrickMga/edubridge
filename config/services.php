@@ -57,9 +57,17 @@ return [
     ],
 
     'whatsapp' => [
-        'token'           => env('WHATSAPP_TOKEN'),
-        'verify_token'    => env('WHATSAPP_VERIFY_TOKEN'),
-        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'app_id'              => env('WHATSAPP_APP_ID'),
+        'app_secret'          => env('WHATSAPP_APP_SECRET'),
+        'token'               => env('WHATSAPP_TOKEN'),
+        'verify_token'        => env('WHATSAPP_VERIFY_TOKEN'),
+        'phone_number_id'     => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'waba_id'             => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
+        'otp_template'        => env('WHATSAPP_OTP_TEMPLATE', 'otp_verification'),
+        'flow_private_key'    => env('WHATSAPP_FLOW_PRIVATE_KEY'),
+        'register_flow_id'    => env('WHATSAPP_REGISTER_FLOW_ID'),
+        'student_hub_flow_id' => env('WHATSAPP_STUDENT_HUB_FLOW_ID'),
+        'teacher_hub_flow_id' => env('WHATSAPP_TEACHER_HUB_FLOW_ID'),
     ],
 
     'stripe' => [
@@ -95,6 +103,38 @@ return [
         'cancel_url'   => env('PAYFAST_CANCEL_URL', env('APP_URL').'/payments/cancel'),
         'notify_url'   => env('PAYFAST_NOTIFY_URL', env('APP_URL').'/payments/webhook/payfast'),
         'usd_zar_rate' => env('PAYFAST_USD_ZAR_RATE', 18.5),
+    ],
+
+    // Paystack — SA bank EFT and card payouts (used for teacher settlements to SA)
+    // Keys shared from VitalBot (same WABA/entity).
+    'paystack' => [
+        'public_key'  => env('PAYSTACK_PUBLIC_KEY', ''),
+        'secret_key'  => env('PAYSTACK_SECRET_KEY', ''),
+        'payment_url' => env('PAYSTACK_PAYMENT_URL', 'https://api.paystack.co'),
+        'callback_url'=> env('PAYSTACK_CALLBACK_URL', ''),
+    ],
+
+    // O'mari (Old Mutual ZW) — wallet top-up / cash-in / cash-out payout
+    // Lowest settlement fee (1.5%). Keys shared from VitalBot.
+    'omari' => [
+        'environment'    => env('OMARI_ENVIRONMENT', 'sandbox'),
+        'sandbox_url'    => env('OMARI_SANDBOX_URL', 'https://omari.v.co.zw/uat/vsuite/omari/api/merchant/api/payment'),
+        'production_url' => env('OMARI_PRODUCTION_URL', 'https://omari.v.co.zw/vsuite/omari/api/merchant/api/payment'),
+        'base_url'       => env('OMARI_BASE_URL', ''),
+        'api_key'        => env('OMARI_API_KEY', ''),
+        'merchant_code'  => env('OMARI_MERCHANT_CODE', ''),
+        'channel'        => env('OMARI_CHANNEL', 'WEB'),
+        'timeout'        => (int) env('OMARI_TIMEOUT', 30),
+    ],
+
+    // O'mari Agent REST API — cash-in (credit a customer wallet), cash-out voucher redemption
+    'omari_agent' => [
+        'environment'    => env('OMARI_ENVIRONMENT', 'sandbox'),
+        'sandbox_url'    => env('OMARI_AGENT_SANDBOX_URL', 'https://omari.v.co.zw/uat/vsuite/omari/api/agent'),
+        'production_url' => env('OMARI_AGENT_PRODUCTION_URL', 'https://omari.v.co.zw/vsuite/omari/api/agent'),
+        'base_url'       => env('OMARI_AGENT_BASE_URL', ''),
+        'api_key'        => env('OMARI_AGENT_API_KEY', ''),
+        'timeout'        => (int) env('OMARI_TIMEOUT', 30),
     ],
 
     'zoom' => [

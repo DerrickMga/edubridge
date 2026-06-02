@@ -9,13 +9,27 @@ class GptService
 {
     private string $apiKey;
     private string $model;
+    private string $visionModel;
     private string $baseUrl;
+    private string $openAiKey; // Kept separately for audio-only endpoints (Whisper, TTS)
 
     public function __construct()
     {
-        $this->apiKey  = (string) config('services.openai.api_key', '');
-        $this->model   = (string) config('services.openai.companion_model', 'gpt-4o');
-        $this->baseUrl = (string) config('services.openai.base_url', 'https://api.openai.com/v1');
+        $this->openAiKey = (string) config('services.openai.api_key', '');
+        $groqKey         = (string) config('services.groq.api_key', '');
+
+        // Primary: Groq (free, OpenAI-compatible). Falls back to OpenAI when Groq key absent.
+        if ($groqKey) {
+            $this->apiKey      = $groqKey;
+            $this->model       = 'llama-3.3-70b-versatile';               // text & JSON
+            $this->visionModel = 'meta-llama/llama-4-scout-17b-16e-instruct'; // vision
+            $this->baseUrl     = 'https://api.groq.com/openai/v1';
+        } else {
+            $this->apiKey      = $this->openAiKey;
+            $this->model       = (string) config('services.openai.companion_model', 'gpt-4o');
+            $this->visionModel = 'gpt-4o';
+            $this->baseUrl     = (string) config('services.openai.base_url', 'https://api.openai.com/v1');
+        }
     }
 
     /**
@@ -31,13 +45,13 @@ class GptService
     public function chatWithMessages(array $messages, int $maxTokens = 2000): string
     {
         if (empty($this->apiKey)) {
-            return json_encode(['status' => 'error', 'reason' => 'OpenAI API key not configured.']);
+            return json_encode(['status' => 'error', 'reason' => 'AI API key not configured.']);
         }
 
         $response = Http::withToken($this->apiKey)
             ->timeout(60)
             ->post($this->baseUrl . '/chat/completions', [
-                'model'      => 'gpt-4o',
+                'model'      => $this->visionModel,
                 'messages'   => $messages,
                 'max_tokens' => $maxTokens,
             ]);
@@ -65,7 +79,7 @@ class GptService
     public function vision(string $base64, string $mimeType, string $question, string $system = null): string
     {
         if (empty($this->apiKey)) {
-            return "GPT-4o vision is not yet configured. Please add OPENAI_API_KEY to your environment.";
+            return 'Vision AI is not yet configured. Please add GROQ_API_KEY or OPENAI_API_KEY to your environment.';
         }
 
         $messages = [];
@@ -92,7 +106,7 @@ class GptService
         $response = Http::withToken($this->apiKey)
             ->timeout(60)
             ->post($this->baseUrl . '/chat/completions', [
-                'model'       => 'gpt-4o',   // always use full gpt-4o for vision
+                'model'       => $this->visionModel,
                 'messages'    => $messages,
                 'max_tokens'  => 2000,
             ]);
@@ -346,11 +360,78 @@ MSG;
     /**
      * Wrapper that accepts an optional maxTokens parameter.
      */
+    /**
+     * Transcribe an audio file using OpenAI Whisper.
+     * Returns empty string when OpenAI key is unavailable.
+     */
+    public function transcribe(string $audioPath, string $language = 'en'): string
+    {
+        if (empty($this->openAiKey)) {
+            Log::warning('GptService transcribe: OpenAI key required for Whisper audio transcription.');
+            return '';
+        }
+
+        if (! file_exists($audioPath)) {
+            Log::warning('GptService transcribe: audio file not found', ['path' => $audioPath]);
+            return '';
+        }
+
+        $response = Http::withToken($this->openAiKey)
+            ->timeout(120)
+            ->attach('file', file_get_contents($audioPath), basename($audioPath))
+            ->post('https://api.openai.com/v1/audio/transcriptions', [
+                'model'    => 'whisper-1',
+                'language' => $language,
+            ]);
+
+        if ($response->failed()) {
+            Log::error('GptService transcribe: Whisper failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 500),
+            ]);
+            return '';
+        }
+
+        return (string) data_get($response->json(), 'text', '');
+    }
+
+    /**
+     * Convert text to speech using OpenAI TTS.
+     * Returns raw audio bytes (mp3 by default) or null when OpenAI key is unavailable.
+     * Voices: alloy, echo, fable, onyx, nova, shimmer.
+     */
+    public function speak(string $text, string $voice = 'nova', string $format = 'mp3'): ?string
+    {
+        if (empty($this->openAiKey)) {
+            Log::warning('GptService speak: OpenAI key required for TTS audio output.');
+            return null;
+        }
+
+        $response = Http::withToken($this->openAiKey)
+            ->timeout(60)
+            ->post('https://api.openai.com/v1/audio/speech', [
+                'model'           => 'tts-1',
+                'input'           => substr($text, 0, 4096),
+                'voice'           => $voice,
+                'response_format' => $format,
+            ]);
+
+        if ($response->failed()) {
+            Log::error('GptService speak: TTS failed', [
+                'status' => $response->status(),
+                'body'   => substr($response->body(), 0, 200),
+            ]);
+            return null;
+        }
+
+        return $response->body(); // raw audio bytes
+    }
+
     public function chat(array $messages, string $system = null, int $maxTokens = 4000): string
     {
         if (empty($this->apiKey)) {
-            Log::warning('GptService: OpenAI API key not configured.');
-            return "GPT-4o is not yet configured. Please add OPENAI_API_KEY to your environment.";
+            Log::warning('GptService: AI API key not configured.');
+            return 'AI is not yet configured. Please add GROQ_API_KEY or OPENAI_API_KEY to your environment.';
         }
 
         $payload = $messages;

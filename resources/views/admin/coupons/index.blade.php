@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Coupons')
+<x-app-layout>
+    <x-slot name="title">Coupons — Admin</x-slot>
 
-@section('content')
-<div class="space-y-5">
+    <div class="space-y-5">
     <div class="flex items-end justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-900">Discount Coupons</h1>
@@ -46,5 +45,5 @@
         </table>
     </div>
     {{ $coupons->links() }}
-</div>
-@endsection
+    </div>
+</x-app-layout>

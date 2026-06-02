@@ -7,23 +7,36 @@ use Illuminate\Http\Request;
 
 class AssignmentController extends Controller
 {
+    /** Any teacher in the course's pivot may manage assignments. */
+    private function authorise(Course $course): void
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return;
+        }
+        abort_unless(
+            $user->taughtCourses()->where('courses.id', $course->id)->exists(),
+            403
+        );
+    }
+
     public function index(Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $assignments = $course->assignments()->withCount('submissions')->latest()->get();
         return view('teacher.assignments.index', compact('course', 'assignments'));
     }
 
     public function create(Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $lessons = $course->lessons()->get();
         return view('teacher.assignments.create', compact('course', 'lessons'));
     }
 
     public function store(Request $request, Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
 
         $data = $request->validate([
             'title'        => ['required', 'string', 'max:255'],
@@ -46,14 +59,14 @@ class AssignmentController extends Controller
 
     public function show(Course $course, Assignment $assignment)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $submissions = $assignment->submissions()->with('student')->latest()->get();
         return view('teacher.assignments.show', compact('course', 'assignment', 'submissions'));
     }
 
     public function grade(Request $request, Course $course, Assignment $assignment, AssignmentSubmission $submission)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
 
         $request->validate([
             'score'    => ['required', 'integer', 'min:0', 'max:'.$assignment->max_score],

@@ -62,6 +62,15 @@ class AnalyzeVerificationDocuments implements ShouldQueue
             return ['status' => 'skipped', 'reason' => 'No images could be loaded from storage.'];
         }
 
+        // Guard: id_document_front may be absent when teacher uploaded a PDF
+        // (PDFs are skipped by loadImages as they cannot be sent to vision AI).
+        if (! isset($images['id_document_front'])) {
+            return [
+                'status' => 'skipped',
+                'reason' => 'ID document was uploaded as a PDF and cannot be processed by vision AI. Ask the teacher to re-upload as JPG or PNG.',
+            ];
+        }
+
         $hasSelfie = isset($images['selfie_with_id']);
 
         // Build the message content — always include the ID front;

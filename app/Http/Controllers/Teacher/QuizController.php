@@ -7,16 +7,23 @@ use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
+    private function authorise(Course $course): void
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) return;
+        abort_unless($user->taughtCourses()->where('courses.id', $course->id)->exists(), 403);
+    }
+
     public function create(Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $lessons = $course->lessons()->get();
         return view('teacher.quizzes.create', compact('course', 'lessons'));
     }
 
     public function store(Request $request, Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
 
         $data = $request->validate([
             'title'               => ['required', 'string', 'max:255'],
@@ -67,7 +74,7 @@ class QuizController extends Controller
 
     public function index(Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $quizzes = Quiz::where('course_id', $course->id)
             ->withCount(['attempts', 'attempts as passed_count' => fn ($q) => $q->where('passed', true)])
             ->with('questions')
@@ -78,7 +85,7 @@ class QuizController extends Controller
 
     public function show(Course $course, Quiz $quiz)
     {
-        abort_if($quiz->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $attempts = QuizAttempt::where('quiz_id', $quiz->id)
             ->with('student')
             ->latest('completed_at')
@@ -95,7 +102,7 @@ class QuizController extends Controller
 
     public function togglePublish(Course $course, Quiz $quiz)
     {
-        abort_if($quiz->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $quiz->update(['is_published' => !$quiz->is_published]);
         return back()->with('success', $quiz->is_published ? 'Quiz published.' : 'Quiz unpublished.');
     }

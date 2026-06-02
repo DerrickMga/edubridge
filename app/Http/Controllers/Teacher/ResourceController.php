@@ -9,16 +9,23 @@ use Illuminate\Support\Str;
 
 class ResourceController extends Controller
 {
+    private function authorise(Course $course): void
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) return;
+        abort_unless($user->taughtCourses()->where('courses.id', $course->id)->exists(), 403);
+    }
+
     public function index(Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         $resources = $course->resources()->with('lesson')->get();
         return view('teacher.resources.index', compact('course', 'resources'));
     }
 
     public function store(Request $request, Course $course)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
 
         $request->validate([
             'title'        => ['required', 'string', 'max:255'],
@@ -59,7 +66,7 @@ class ResourceController extends Controller
 
     public function destroy(Course $course, Resource $resource)
     {
-        abort_if($course->teacher_id !== auth()->id(), 403);
+        $this->authorise($course);
         abort_if($resource->course_id !== $course->id, 404);
         if ($resource->storage_path) {
             Storage::disk('public')->delete($resource->storage_path);

@@ -1,9 +1,8 @@
-@extends('layouts.app')
-@section('page-title', $coupon->exists ? 'Edit coupon' : 'New coupon')
+<x-app-layout>
+    <x-slot name="title">{{ $coupon->exists ? 'Edit Coupon' : 'New Coupon' }} — Admin</x-slot>
 
-@section('content')
-@php $isEdit = $coupon->exists; @endphp
-<div class="max-w-2xl space-y-5">
+    @php $isEdit = $coupon->exists; @endphp
+    <div class="max-w-2xl space-y-5">
     <h1 class="text-2xl font-bold text-slate-900">{{ $isEdit ? 'Edit coupon' : 'New coupon' }}</h1>
 
     @if($errors->any())<div class="px-4 py-2 rounded-lg bg-rose-50 text-rose-800 text-sm">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
@@ -67,5 +66,5 @@
             <button class="px-3 py-2 text-sm rounded-lg bg-slate-900 text-white hover:bg-slate-800">{{ $isEdit ? 'Save changes' : 'Create coupon' }}</button>
         </div>
     </form>
-</div>
-@endsection
+    </div>
+</x-app-layout>

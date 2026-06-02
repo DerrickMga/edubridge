@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', 'Bundles')
+<x-app-layout>
+    <x-slot name="title">Bundles</x-slot>
 
-@section('content')
-<div class="max-w-5xl mx-auto space-y-5">
+    <div class="max-w-5xl mx-auto space-y-5">
     <div>
         <h1 class="text-2xl font-bold text-slate-900">Course bundles</h1>
         <p class="text-sm text-slate-500">Grouped courses at a single price.</p>
@@ -23,5 +22,5 @@
         @endforelse
     </div>
     {{ $bundles->links() }}
-</div>
-@endsection
+    </div>
+</x-app-layout>

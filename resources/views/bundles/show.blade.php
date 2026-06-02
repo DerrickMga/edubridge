@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('page-title', $bundle->title)
+<x-app-layout>
+    <x-slot name="title">{{ $bundle->title }}</x-slot>
 
-@section('content')
-<div class="max-w-4xl mx-auto space-y-5">
+    <div class="max-w-4xl mx-auto space-y-5">
     @if($bundle->thumbnail)<img src="{{ $bundle->thumbnail }}" class="w-full h-56 object-cover rounded-xl" alt="">@endif
 
     <div class="flex items-start justify-between gap-4">
@@ -34,5 +33,5 @@
             @endforeach
         </ul>
     </div>
-</div>
-@endsection
+    </div>
+</x-app-layout>
